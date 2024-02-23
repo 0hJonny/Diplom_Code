@@ -1,0 +1,108 @@
+version: '3'
+services:
+# Init Database
+  # Postgres
+  postgres:
+    image: ${IMAGE_POSTGRES}
+    container_name: postgres
+    shm_size: 1g
+    restart: always
+    volumes:
+      - /opt/postgres/data:/var/lib/postgresql/data
+      - /opt/postgres/backup:/opt/postgres/backup
+      - /opt/postgres/initdb:/docker-entrypoint-initdb.d
+      - /opt/exchange:/opt/exchange
+    ports:
+      - ${DATASOURCE_PORT}:5432
+    environment:
+      LANG: en_US.utf8
+      POSTGRES_INITDB_ARGS: '--locale-provider=icu --icu-locale=en_US'
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD}
+      TZ: 'Asia/Yekaterinburg'
+      PGTZ: 'Asia/Yekaterinburg'
+  # PgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    environment:
+      PGADMIN_LISTEN_PORT: 5050
+      PGADMIN_LISTEN_ADDRESS: 0.0.0.0
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      TZ: 'GMT+5'
+      PGTZ: 'GMT+5'
+    ports:
+      - 5050:5050
+    volumes:
+      - /opt/postgres/pgadmin:/var/lib/pgadmin
+  # Minio
+  minio:
+    image: bitnami/minio:2023.6.23
+    container_name: minio
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      - MINIO_ROOT_USER=${MINIO_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
+    volumes:
+      - /opt/minio/data:/data
+      - /opt/exchange:/opt/exchange
+# Python Server
+  # Parser
+  python-parser:
+    build:
+      context: ../Server/Parser
+      dockerfile: Dockerfile
+    container_name: python-parser
+    environment:
+      DB_POST_API: http://python-flask-server:5000
+    volumes:
+      - ../Server/Parser:/app
+    restart: always
+    depends_on:
+      - python-flask-server
+  # Flask Server
+  python-flask-server:
+    build:
+      context: ../Server/BackFlask
+      dockerfile: Dockerfile
+    container_name: python-flask
+    environment:
+      POSTGRES_DATABASE_URL: postgres
+      POSTGRES_USERNAME: ${DATASOURCE_USER}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD}
+      POSTGRES_DATABASE_NAME: ${DATASOURCE_NAME}
+    ports:
+      - '5000:5000'
+    volumes:
+      - ../Server/BackFlask:/app
+    restart: always
+    depends_on:
+      - postgres
+# Init Web
+  vue-app:
+    container_name: vue-app
+    environment:
+      FLASK_API: python-flask-server:5000
+    build:
+      context: ../Web-site
+      dockerfile: Dockerfile
+    ports:
+      - "80:3001"
+    volumes:
+      - ../Web-site:/app
+    restart: always
+    depends_on:
+      - python-flask-server
+  # vue-app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - .:/app 
+  #   restart: always
+  
+

@@ -1,0 +1,332 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bkg: #fff;
+    --color-text-primary: #1a1a1a;
+    --color-text-sub: #667085;
+    --color-text-title: #6941c6;
+  }
+
+  :root[class="dark"] {
+    --color-bkg: #090d1f;
+    --color-text-primary: #fff;
+    --color-text-sub: #c0c5d0;
+    --color-text-title: #9365ff;
+  }
+
+  body {
+    background-color: var(--color-bkg);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .main-page {
+    @apply m-auto shadow-xl mt-8;
+  }
+
+  /* Header Part */
+
+  .header-container {
+    @apply px-28;
+    padding-bottom: 50px;
+  }
+
+  .header-container h2 {
+    color: var(--color-text-primary);
+  }
+
+  .header-container-nav {
+    @apply flex justify-between items-center;
+  }
+
+  .header-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .header-text {
+    @apply text-xl font-bold;
+  }
+
+  .title-header h1 {
+    color: var(--color-text-primary);
+  }
+
+  /* Theme Switcher */
+  .theme-switcher-light {
+    @apply cursor-pointer flex shadow-lg;
+    border-radius: 29px;
+    padding: 8px 16px;
+    gap: 16px;
+    background-color: #090d1f;
+    transition: background-color 0.3s ease-in-out;
+  }
+  .theme-switcher-icon {
+    @apply z-0;
+    width: 24px;
+    height: 24px;
+  }
+
+  .theme-switcher-dark {
+    @apply cursor-pointer flex shadow-lg;
+    border-radius: 29px;
+    padding: 8px 16px;
+    gap: 16px;
+    background-color: #f3f3f3;
+    transition: background-color 0.3s ease-in-out;
+  }
+
+  /* Articles Block */
+
+  .articles-container h2 {
+    color: var(--color-text-primary);
+  }
+
+  .articles-container-bottom {
+    @apply grid row-span-3 md:grid-cols-3 md:gap-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-8;
+  }
+
+  .articles-container-top {
+    @apply grid grid-flow-row-dense grid-cols-2;
+  }
+
+  /* Links reference */
+  .link-ref {
+    @apply hover:text-blue-500 hover:underline;
+  }
+
+  /* Pagination Bar */
+  /* .pagination-button {
+    @apply relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0;
+  } */
+
+  .pagination-button {
+    @apply relative inline-flex items-center rounded-lg p-4 text-sm font-semibold text-gray-500 hover:text-purple-700 hover:bg-violet-50 focus:z-20 focus:outline-offset-0;
+    height: 40px;
+    width: 100%;
+    transition: 0.13s ease-in-out;
+  }
+
+  /* Article Card */
+  .article-card-body {
+    @apply mb-6 rounded-2xl border p-4;
+    border: var(--color-bkg);
+    background: var(--color-bkg);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .article-card-body:hover {
+    @apply shadow-lg -translate-y-2 border-slate-100 dark:shadow-purple-700;
+  }
+
+  .article-card-body h2 {
+    color: var(--color-text-primary);
+  }
+
+  .article-card-body h3 {
+    color: var(--color-text-title);
+  }
+
+  .article-card-body p {
+    color: var(--color-text-sub);
+  }
+
+  .article-card-image {
+    @apply pb-8 cursor-pointer rounded-2xl;
+    /* width: 200px; */
+  }
+
+  .article-card-title {
+    @apply text-2xl font-semibold cursor-pointer;
+  }
+
+  .article-truncate-lines-2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    -webkit-line-clamp: 2; /* Number of lines to show */
+  }
+
+  /* Tags cards styles */
+  /* Style for tag-card-violet */
+  .tag-card-violet {
+    @apply font-medium text-sm text-violet-700 bg-violet-100 rounded-full px-3 py-1;
+    transition: background-image 0.3s ease;
+  }
+
+  /* Hover style for tag-card-violet */
+  .tag-card-violet:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #7f9cf5, #e0a3f7);
+    color: #fff;
+  }
+  /* Style for tag-card-gray */
+  .tag-card-gray {
+    @apply font-medium text-sm text-gray-700 bg-gray-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-gray:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #cccccc, #999999);
+    color: #fff;
+  }
+
+  /* Style for tag-card-orange */
+  .tag-card-orange {
+    @apply font-medium text-sm text-orange-700 bg-orange-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-orange:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #ff8c42, #ff3e03);
+    color: #fff;
+  }
+
+  /* Style for tag-card-green */
+  .tag-card-green {
+    @apply font-medium text-sm text-green-700 bg-green-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-green:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #7ed321, #3ba55c);
+    color: #fff;
+  }
+
+  /* Style for tag-card-pink */
+  .tag-card-pink {
+    @apply font-medium text-sm text-pink-700 bg-pink-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-pink:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #e91e63, #d81b60);
+    color: #fff;
+  }
+
+  /* Style for tag-card-red */
+  .tag-card-red {
+    @apply font-medium text-sm text-red-700 bg-red-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-red:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #e74c3c, #c0392b);
+    color: #fff;
+  }
+
+  /* Style for tag-card-yellow */
+  .tag-card-yellow {
+    @apply font-medium text-sm text-yellow-700 bg-yellow-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-yellow:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #f1c40f, #f39c12);
+    color: #fff;
+  }
+
+  /* Style for tag-card-teal */
+  .tag-card-teal {
+    @apply font-medium text-sm text-teal-700 bg-teal-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-teal:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #2ecc71, #27ae60);
+    color: #fff;
+  }
+  /* Style for tag-card-blue */
+  .tag-card-blue {
+    @apply font-medium text-sm text-blue-700 bg-blue-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-blue:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #3498db, #2980b9);
+    color: #fff;
+  }
+
+  /* Style for tag-card-cyan */
+  .tag-card-cyan {
+    @apply font-medium text-sm text-cyan-700 bg-cyan-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-cyan:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #1abc9c, #16a085);
+    color: #fff;
+    transform: scale(1.05);
+  }
+
+  .tag-card-purple {
+    @apply font-medium text-sm text-purple-700 bg-purple-100 rounded-full px-3 py-1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-image 0.3s ease;
+  }
+
+  .tag-card-purple:hover {
+    @apply shadow-md;
+    background-image: linear-gradient(to top right, #9b59b6, #8e44ad);
+    color: #fff;
+  }
+
+  /* Footer Part */
+  .footer-links a {
+    color: var(--color-text-primary);
+    transition: all 0.3s ease-in-out;
+  }
+  .footer-links a:hover {
+    color: var(--color-text-title);
+    transform: scale(0.5);
+  }
+
+  .footer-links a:active {
+    color: var(--color-text-title);
+  }
+
+  .footer-container p {
+    color: var(--color-text-primary);
+    transition: all 0.3s ease-in-out;
+  }
+}
