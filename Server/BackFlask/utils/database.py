@@ -1,6 +1,4 @@
 import os
-import psycopg2
-from PostgreSQL import *
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,24 +8,27 @@ POSTGRES_DATABASE_NAME = os.getenv("POSTGRES_DATABASE_NAME")
 POSTGRES_USERNAME = os.getenv("POSTGRES_USERNAME")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 POSTGRES_CONNECTION_PORT = os.getenv("POSTGRES_CONNECTION_PORT")
+POSTGRES_ARTICLES = os.getenv("POSTGRES_ARTICLES")
+POSTGRES_USERS = os.getenv("POSTGRES_USERS")
 
-db_info = ("host='%s' \
+articles_connection = ("host='%s' \
         dbname='%s' \
         user='%s' \
         password='%s' \
         port='%s'"
            % (POSTGRES_DATABASE_URL,
-              POSTGRES_DATABASE_NAME,
+              POSTGRES_ARTICLES,
               POSTGRES_USERNAME,
               POSTGRES_PASSWORD,
               POSTGRES_CONNECTION_PORT))
 
-connection = psycopg2.connect(db_info)
-
-
-def initialize_database(cursor):
-    cursor.execute(DB_INIT_TABLE_THEME)
-    cursor.execute(DB_CREATE_TABLE_ARTICLES)
-    cursor.execute(DB_CREATE_TABLE_ANNOTATIONS)
-    cursor.execute(DB_CREATE_TABLES_INDEX)
-    cursor.execute(DB_CREATE_TABLE_USERS)
+users_connection = ("host='%s' \
+        dbname='%s' \
+        user='%s' \
+        password='%s' \
+        port='%s'"
+           % (POSTGRES_DATABASE_URL,
+              POSTGRES_USERS,
+              POSTGRES_USERNAME,
+              POSTGRES_PASSWORD,
+              POSTGRES_CONNECTION_PORT))

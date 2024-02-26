@@ -3,14 +3,17 @@ services:
 # Init Database
   # Postgres
   postgres:
-    image: ${IMAGE_POSTGRES}
+    # image: ${IMAGE_POSTGRES}
+    build:
+     context: ../postgres
+     dockerfile: Dockerfile
     container_name: postgres
     shm_size: 1g
     restart: always
     volumes:
       - /opt/postgres/data:/var/lib/postgresql/data
       - /opt/postgres/backup:/opt/postgres/backup
-      - /opt/postgres/initdb:/docker-entrypoint-initdb.d
+      - ../postgres/initdb:/docker-entrypoint-initdb.d
       - /opt/exchange:/opt/exchange
     ports:
       - ${DATASOURCE_PORT}:5432
@@ -18,6 +21,8 @@ services:
       LANG: en_US.utf8
       POSTGRES_INITDB_ARGS: '--locale-provider=icu --icu-locale=en_US'
       POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD}
+      DATASOURCE_DB_USERS: ${DATASOURCE_DB_USERS}
+      DATASOURCE_USER: ${DATASOURCE_USER}
       TZ: 'Asia/Yekaterinburg'
       PGTZ: 'Asia/Yekaterinburg'
   # PgAdmin
@@ -56,7 +61,7 @@ services:
       dockerfile: Dockerfile
     container_name: python-parser
     environment:
-      DB_POST_API: http://python-flask-server:5000
+      DB_POST_API: http://python-flask-server:5000/api/v1
     volumes:
       - ../Server/Parser:/app
     restart: always
@@ -73,6 +78,8 @@ services:
       POSTGRES_USERNAME: ${DATASOURCE_USER}
       POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD}
       POSTGRES_DATABASE_NAME: ${DATASOURCE_NAME}
+      POSTGRES_ARTICLES: ${DATASOURCE_DB_ARTICLES}
+      POSTGRES_USERS: ${DATASOURCE_DB_USERS}
     ports:
       - '5000:5000'
     volumes:

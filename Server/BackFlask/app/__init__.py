@@ -15,7 +15,7 @@ jwt = JWTManager(app)
 
 # Имспорт авторизации для api
 from .client import client_bp
-app.register_blueprint(client_bp)
+app.register_blueprint(client_bp, url_prefix='/api/v1')
 
 
 # Импорт api для работы с новостными статьями

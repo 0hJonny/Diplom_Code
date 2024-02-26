@@ -1,5 +1,5 @@
 import os
-import cloudscraper
+import undetected_chromedriver as uc
 import requests
 from bs4 import BeautifulSoup
 
@@ -29,14 +29,29 @@ parsed_content = base_parser.parse()
 
 class BaseParser:
     def __init__(self, url: str):
+        # UC options settings
+        self.options = uc.ChromeOptions()
+        self.options.arguments.extend(["--no-sandbox",
+                                       "--disable-setuid-sandbox",
+                                       "--disable-dev-shm-usage",
+                                       "--disable-blink-features=AutomationControlled",
+                                       "--disable-features=VizDisplayCompositor",
+                                       "--disable-features=UseSurfaceLayerForVideo",
+                                       "--force-color-profile=srgb",
+                                       "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+                                       ])
+        self.browser = uc.Chrome(options = self.options, headless=True,use_subprocess=False)
+        
+        # UC options ends
         self.url:str = url
-        self.scraper:cloudscraper = cloudscraper.create_scraper(delay=10, browser={'custom': 'ScraperBot/1.0', })
         self.api_access_token:str = ""
         self.api_user_login:str = os.getenv("API_USER_LOGIN")
         self.api_user_password:str = os.getenv("API_USER_PASSWORD")
         self.api_base_url:str = os.getenv("DB_POST_API")
         # self._registration()
         self._login()
+        def __del__(self):
+                self.browser.quit()
 
     # Регистрация пользователя
     def _registration(self):
@@ -55,9 +70,10 @@ class BaseParser:
 
     def _fetch_html(self) -> bytes:
         try:
-            with self.scraper.get(self.url, timeout=5) as response:
-                response.raise_for_status()
-                return response.content
+            self.browser.get(self.url)
+            self.browser.save_screenshot(f"screenshot.png")
+            # response.raise_for_status()
+            return self.browser.page_source
         except requests.exceptions.HTTPError as errh:
             print(f"HTTP Error: {errh}")
         except requests.exceptions.ConnectionError as errc:

@@ -1,0 +1,2 @@
+#!/bin/bash
+psql -U $DATASOURCE_USER -d $DATASOURCE_DB_USERS -c "DELETE FROM users WHERE confirmed = FALSE AND created_at <= NOW() - INTERVAL '15 minutes' AND created_at <= NOW() - INTERVAL '6 hours';"
