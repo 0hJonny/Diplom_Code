@@ -80,8 +80,6 @@ def protected_articles():
                     except psycopg2.Error as err:
                         connection.rollback()
                         return f"Article already exists! {err}", 500
-                    finally:
-                        connection.close()
 
                 return {
                     "id": article_id,

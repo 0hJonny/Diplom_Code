@@ -1,6 +1,7 @@
 CyberNews.log
 .idea
 venv
-./parsers/cybernews.ipynb
+parsers/cybernews.ipynb
+parsers/base_parser_uc.py
 __pycache__
 **/__pycache__/

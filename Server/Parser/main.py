@@ -9,7 +9,7 @@ def process_category(category, link, semaphore):
         cybernews_parser.start()
 
 def main():
-    semaphore = Semaphore(1)  # Set the maximum number of allowed processes to 1
+    semaphore = Semaphore(2)  # Set the maximum number of allowed processes to 1
     processes = []
     for category, link in RESOURCES["cybernews"].items():
         p = Process(target=process_category, args=(category, link, semaphore))

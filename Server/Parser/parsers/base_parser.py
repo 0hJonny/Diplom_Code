@@ -2,6 +2,8 @@ import os
 import cloudscraper
 import requests
 from bs4 import BeautifulSoup
+import time 
+import random
 
 """
 Класс BaseParser представляет собой базовый парсер, предназначенный для выполнения основных операций 
@@ -30,7 +32,7 @@ parsed_content = base_parser.parse()
 class BaseParser:
     def __init__(self, url: str):
         self.url:str = url
-        self.scraper:cloudscraper = cloudscraper.create_scraper(delay=10, browser={'custom': 'ScraperBot/1.0', })
+        self.scraper:cloudscraper = cloudscraper.create_scraper(delay=6, browser={"browser": "chrome", "device": "ipad"})
         self.api_access_token:str = ""
         self.api_user_login:str = os.getenv("API_USER_LOGIN")
         self.api_user_password:str = os.getenv("API_USER_PASSWORD")
@@ -54,19 +56,25 @@ class BaseParser:
         self.api_access_token = login_response.json().get("access_token")
 
     def _fetch_html(self) -> bytes:
-        try:
-            with self.scraper.get(self.url, timeout=5) as response:
-                response.raise_for_status()
-                return response.content
-        except requests.exceptions.HTTPError as errh:
-            print(f"HTTP Error: {errh}")
-        except requests.exceptions.ConnectionError as errc:
-            print(f"Error Connecting: {errc}")
-        except requests.exceptions.Timeout as errt:
-            print(f"Timeout Error: {errt}")
-        except requests.exceptions.RequestException as err:
-            print(f"OOps: Something Else: {err}")
+        max_attempts = 3
+        for _ in range(max_attempts):
+            time.sleep(random.uniform(1.041, 2.07))
+            # time.sleep(random.uniform(0.041, 1.07))
+            try:
+                with self.scraper.get(self.url, timeout=5) as response:
+                    response.raise_for_status()
+                    return response.content
+            except requests.exceptions.HTTPError as errh:
+                print(f"HTTP Error: {errh}")
+            except requests.exceptions.ConnectionError as errc:
+                print(f"Error Connecting: {errc}")
+            except requests.exceptions.Timeout as errt:
+                print(f"Timeout Error: {errt}")
+            except requests.exceptions.RequestException as err:
+                print(f"OOps: Something Else: {err}")
+            max_attempts -= 1
         return None
+        
 
 
     def _send_data_to_server(self, data) -> bool:

@@ -1,6 +1,6 @@
 import logging
 from bs4 import BeautifulSoup
-from parsers.base_parser_uc import BaseParser
+from parsers.base_parser import BaseParser
 from parsers.model_cybernews import Article
 
 logging.basicConfig(filename='CyberNews.log', level=logging.INFO)

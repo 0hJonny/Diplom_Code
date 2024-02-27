@@ -2,6 +2,7 @@ import psycopg2
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 import bcrypt
+import datetime
 
 from PostgreSQL import *
 from models.user import User, User_model
@@ -48,7 +49,7 @@ def login():
                     return jsonify({'message': 'No user data found'}), 404
                 user_data = User_model(*user_data)
                 if bcrypt.checkpw(user.password.encode('utf-8'), user_data.password.encode('utf-8')):
-                    access_token = create_access_token(identity=user.username)
+                    access_token = create_access_token(identity=user.username, expires_delta=datetime.timedelta(days=1))
                     return jsonify(access_token=access_token), 200
                 else:
                     return jsonify({'message': 'Invalid credentials'}), 401
