@@ -89,18 +89,49 @@ def protected_articles():
             return "Unsupported Media Type: Expecting JSON", 415
 
 
-@api_v1_bp.route('/articles/<uuid:article_id>', methods=['GET, PUT, DELETE'])
+@api_v1_bp.route('/articles/annotations', methods=['GET'])
+@jwt_required()
+def annotations_api_last_needed():
+    current_user = get_jwt_identity()
+    
+    if request.method == 'GET':
+        query = """
+            SELECT articles.id
+            FROM articles
+            LEFT JOIN annotations ON articles.id = annotations.article_id
+            WHERE annotations.article_id IS NULL;
+        """
+
+        with psycopg2.connect(articles_connection) as connection:
+            with connection.cursor() as cursor:
+                try:
+                    cursor.execute(query)
+                    annotations = cursor.fetchall()
+                except psycopg2.Error as err:
+                    return f"Database error: {err}", 500
+        if annotations:
+            return jsonify(annotations), 200
+        else:
+            return jsonify({'error': 'Annotations not found'}), 404
+
+
+
+@api_v1_bp.route('/articles/<uuid:article_id>', methods=['GET', 'PUT', 'DELETE'])
 @jwt_required()
 def article_api_by_id(article_id):
     current_user = get_jwt_identity()
 
     if request.method == 'GET':
+        article_id = str(article_id)
+
         query = """
             SELECT 
                 articles.id, 
                 articles.title, 
-                articles.created_at, 
-                articles.image_link, 
+                articles.created_at,
+                articles.source_link,  
+                articles.image_link,
+                articles.body, 
                 themes.theme_name,
                 json_agg(tags.tag_name) AS tags,
                 annotations.annotation
