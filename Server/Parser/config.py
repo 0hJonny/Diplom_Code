@@ -22,12 +22,10 @@ Example:
 
 """
 
-RESOURCES = {
-    "cybernews": {
-        "tech": "https://cybernews.com/tech",
-        "crypto": "https://cybernews.com/crypto",
-        "privacy": "https://cybernews.com/privacy",
-        "security": "https://cybernews.com/security",
-        "editorial": "https://cybernews.com/editorial",
-    },
-}
+SOURCES = [{
+    "name" : "CyberNews",
+    "urls" : ["https://cybernews.com/tech",
+              "https://cybernews.com/crypto",
+              "https://cybernews.com/privacy",
+              "https://cybernews.com/security",
+              "https://cybernews.com/editorial"]}]

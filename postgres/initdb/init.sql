@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS themes (
 -- Заполняем таблицу themes
 
 INSERT INTO themes (theme_name) VALUES 
-	('tech'), 
+	('technology'), 
 	('crypto'), 
 	('privacy'), 
 	('security') ON CONFLICT DO NOTHING;;
@@ -116,9 +116,11 @@ CREATE TABLE IF NOT EXISTS article_tags (
 
 -- Создание таблицы annotations
 CREATE TABLE IF NOT EXISTS annotations (
-    annotation_id BIGSERIAL PRIMARY KEY,
+    annotation_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     article_id uuid UNIQUE,
     annotation TEXT NOT NULL,
+    language_code VARCHAR(5),
+    created_at TIMESTAMP DEFAULT now(),
     FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
 );
 

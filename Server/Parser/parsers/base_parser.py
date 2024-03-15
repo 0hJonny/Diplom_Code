@@ -36,7 +36,7 @@ class BaseParser:
         self.api_access_token:str = ""
         self.api_user_login:str = os.getenv("API_USER_LOGIN")
         self.api_user_password:str = os.getenv("API_USER_PASSWORD")
-        self.api_base_url:str = os.getenv("DB_POST_API")
+        self.api_base_url:str = os.getenv("FLASK_API")
         # self._registration()
         self._login()
 

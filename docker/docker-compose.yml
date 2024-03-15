@@ -61,10 +61,28 @@ services:
       dockerfile: Dockerfile
     container_name: python-parser
     environment:
-      DB_POST_API: http://python-flask-server:5000/api/v1
+      FLASK_API: http://python-flask-server:5000/api/v1
     volumes:
       - ../Server/Parser:/app
     restart: always
+    depends_on:
+      - python-flask-server
+  # annotator
+  python-annotator:
+    build:
+      context: ../Server/Annotation
+      dockerfile: Dockerfile
+    container_name: python-annotator
+    # ports:
+      # - 8080:8080
+      # - 1337:1337 
+      # - 7900:7900
+    environment:
+      FLASK_API: http://python-flask-server:5000/api/v1
+    volumes:
+      - ../Server/Annotation:/app
+    restart: always
+    shm_size: "2g"
     depends_on:
       - python-flask-server
   # Flask Server

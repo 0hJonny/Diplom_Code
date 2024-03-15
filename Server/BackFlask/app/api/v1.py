@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from PostgreSQL import DB_INSERT_TABLE_ARTICLES
 from utils.database import articles_connection
-from models.articles import Article
+from models import Article, Annotation
 
 api_v1_bp = Blueprint('api_v1', __name__)
 
@@ -89,7 +89,7 @@ def protected_articles():
             return "Unsupported Media Type: Expecting JSON", 415
 
 
-@api_v1_bp.route('/articles/annotations', methods=['GET'])
+@api_v1_bp.route('/articles/annotations', methods=['GET', 'POST'])
 @jwt_required()
 def annotations_api_last_needed():
     current_user = get_jwt_identity()
@@ -114,6 +114,83 @@ def annotations_api_last_needed():
         else:
             return jsonify({'error': 'Annotations not found'}), 404
 
+    if request.method == 'POST':
+        if request.is_json:
+            requested_data = request.get_json()
+            data = Annotation(
+                id=requested_data['id'],
+                title=requested_data['title'],
+                created_at=requested_data['created_at'],
+                source_link=requested_data['source_link'],
+                image_link=requested_data['image_link'],
+                body=requested_data['body'],
+                theme_name=requested_data['theme_name'],
+                tags=requested_data['tags'],
+                annotation=requested_data.get('annotation'),
+                language_code=requested_data['language_code']
+            )
+            # print(data)
+            query_annotation = """
+                INSERT INTO annotations (article_id, annotation, language_code)
+                VALUES (%s, %s, %s)
+            """
+            with psycopg2.connect(articles_connection) as connection:
+                with connection.cursor() as cursor:
+                    try:
+                        cursor.execute(query_annotation, (data.id, data.annotation, data.language_code))
+
+                        # Insert theme if it doesn't exist and get its theme_id
+                        theme_id = insert_theme(data.theme_name, cursor)
+
+                        print(theme_id)
+                        # Insert article-theme relationship
+                        upadate_article_theme(data.id, theme_id, cursor)
+
+                        # Insert tags if they don't exist and get their tag_ids
+                        tag_ids = insert_tags(data.tags, cursor)
+
+                        # Insert article-tag relationships into the article_tags table
+                        insert_article_tags(data.id, tag_ids, cursor)
+
+                        connection.commit()
+                        return jsonify({'message': f'Annotation created successfully for article {data.id}!'}), 201
+
+                    except psycopg2.Error as err:
+                        connection.rollback()
+                        return f"Database error: {err}", 500
+
+
+def insert_theme(theme_name, cursor):
+                            cursor.execute("SELECT theme_id FROM themes WHERE theme_name = %s", (theme_name,))
+                            existing_theme = cursor.fetchone()
+                            if existing_theme:
+                                return existing_theme[0]
+                            else:
+                                cursor.execute("INSERT INTO themes (theme_name) VALUES (%s) RETURNING theme_id", (theme_name,))
+                                new_theme_id = cursor.fetchone()[0]
+                                return new_theme_id
+                
+def upadate_article_theme(article_id, theme_id, cursor):
+    cursor.execute("UPDATE articles SET theme_id = %s WHERE id = %s", (theme_id, article_id))
+
+def insert_tags(tags, cursor):
+    tag_ids = []
+    for tag in tags:
+        cursor.execute("SELECT tag_id FROM tags WHERE tag_name = %s", (tag,))
+        existing_tag = cursor.fetchone()
+        if existing_tag:
+            tag_ids.append(existing_tag[0])
+        else:
+            cursor.execute("INSERT INTO tags (tag_name) VALUES (%s) RETURNING tag_id", (tag,))
+            new_tag_id = cursor.fetchone()[0]
+            tag_ids.append(new_tag_id)
+    return tag_ids
+
+
+def insert_article_tags(article_id, tag_ids, cursor):
+    for tag_id in tag_ids:
+        cursor.execute("INSERT INTO article_tags (article_id, tag_id) VALUES (%s, %s)", (article_id, tag_id))
+
 
 
 @api_v1_bp.route('/articles/<uuid:article_id>', methods=['GET', 'PUT', 'DELETE'])
@@ -134,7 +211,8 @@ def article_api_by_id(article_id):
                 articles.body, 
                 themes.theme_name,
                 json_agg(tags.tag_name) AS tags,
-                annotations.annotation
+                annotations.annotation,
+                annotations.language_code
             FROM 
                 articles
             LEFT JOIN 
@@ -148,7 +226,7 @@ def article_api_by_id(article_id):
             WHERE 
                 articles.id = %s
             GROUP BY 
-                articles.id, themes.theme_name, annotations.annotation;
+                articles.id, themes.theme_name, annotations.annotation, annotations.language_code;
         """
 
         with psycopg2.connect(articles_connection) as connection:
