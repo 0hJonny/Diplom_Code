@@ -105,19 +105,19 @@ const changePage = (page: number) => {
           class="isolate inline-flex -space-x-px rounded-md"
           aria-label="Pagination"
         >
+        <div class="flex items-center gap-2">
           <button
             v-for="(page, index) in visiblePages"
             :key="index"
             href="#"
             class="pagination-button"
-            :class="{
-              active: page == pagesData.currentPage,
-            }"
+            :class="{ active: page === pagesData.currentPage }"
             :disabled="page === '...' || page === pagesData.currentPage"
             @click="changePage(page)"
           >
             {{ page }}
           </button>
+        </div>
         </nav>
       </div>
       <div

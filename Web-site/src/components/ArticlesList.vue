@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { reactive } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
+import urls from "@/utils/urls";
+import service from "@/utils/https";
 import ArticleVue from "./Article.vue";
 import PaginationVue from "./Pagination.vue";
 import type { Article } from "../models/index";
@@ -14,68 +16,61 @@ const pagesData = reactive({
   totalItems: 400,
 });
 
-/// Test data
+const articles = ref<Article[]>([]);
 
-const data = <Article[]>[
-  {
-    author: "Jane Smith",
-    publishedDate: "2022-03-15",
-    title: "How to Bake the Perfect Chocolate Cake",
-    description:
-      "In this article, we explore the secrets to baking a moist and delicious chocolate cake.",
-    imageLink:
-      "https://www.lascimmiapensa.com/wp-content/uploads/2022/03/GigaChad.jpg",
-    tags: ["baking", "chocolate", "desserts"],
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    author: "John Doe & Jane Smith",
-    publishedDate: "2022-04-15",
-    title: "Applying AI in Baking: Creating Innovative Recipes",
-    description:
-      "Exploring the fusion of technology and baking to create unique and innovative recipes using AI.",
-    imageLink:
-      "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.redd.it%2Fnqxk9l0jn1t61.jpg&f=1&nofb=1&ipt=8557f318dd8dbed1f1908f2c8f26bf8e35b6515a36063e972f6cf25c83f769f8&ipo=images",
-    tags: ["AI", "Baking", "Innovation"],
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    author: "Jane Smith",
-    publishedDate: "2022-03-15",
-    title: "How to Bake the Perfect Chocolate Cake",
-    description:
-      "In this article, we explore the secrets to baking a moist and delicious chocolate cake.",
-    imageLink: "/Refactory.png",
-    tags: ["Baking", "Chocolate", "Desserts"],
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    author: "John Doe",
-    publishedDate: "2022-04-01",
-    title: "The Impact of Artificial Intelligence on Cybersecurity",
-    description:
-      "Exploring the role of AI in enhancing cybersecurity measures.",
-    imageLink:
-      "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.kindpng.com%2Fpicc%2Fm%2F107-1078121_transparent-pepe-classic-5-sticker-gif-by-streamlabs.png&f=1&nofb=1&ipt=e87613c859b3f343f4eb1d2f8bde76761153f20b89dc6fcb9a4730c7654c6140&ipo=images",
-    tags: ["AI", "Cybersecurity", "Technology"],
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    author: "John Doe",
-    publishedDate: "2022-04-01",
-    title: "The Impact of Artificial Intelligence on Cybersecurity",
-    description:
-      "Exploring the role of AI in enhancing cybersecurity measures.",
-    imageLink: "/img_01.png",
-    tags: ["AI", "Cybersecurity", "Technology"],
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-];
+onMounted(async () => {
+  await loadArticles();
+  await get_articles_count();
+});
+
+async function get_articles_count() {
+  const data: any = await service.get(`${urls.articles_count}`);
+  pagesData.totalItems = data["count"];
+  console.log("pagesData.totalItems: ", pagesData.totalItems);
+}
+
+async function loadArticles() {
+  try {
+    // Получаем данные от сервиса
+    const rawData: any[] = await service.get(`${urls.articles}?page=${pagesData.currentPage}&limit=${pagesData.elementsPerPage}`);
+    // console.log("currentPage: ", pagesData.currentPage);
+    // Преобразуем данные в объекты типа Article
+    const parsedData: Article[] = rawData.map((article: any) => ({
+      id: article[0],
+      title: article[1],
+      publishedDate: article[2],
+      imageLink: article[3],
+      category: article[4],
+      tags: article[5],
+      content: article[6]
+    }));
+
+    // Обновляем значение реактивной переменной articles
+    articles.value = parsedData;
+
+    // Выводим полученные статьи
+  } catch (error) {
+    // Обрабатываем ошибку, если она возникла
+    console.error(error);
+  }
+};
+
+// Следим за изменениями currentPage и загружаем статьи при изменении
+watch(() => pagesData.currentPage, async (newPage) => {
+  // При изменении страницы загружаем статьи
+  await loadArticles();
+});
+
+// Следим за изменениями в router.currentRoute и обновляем currentPage при изменении query.page
+watch(() => router.currentRoute.value.query.page,
+  (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      // Обновляем currentPage в соответствии со значением из маршрута
+      pagesData.currentPage = Number(newValue) || 1; 
+      console.log("currentPage: ", pagesData.currentPage);
+    }
+});
+
 </script>
 <template>
   <div class="articles-container">
@@ -86,18 +81,8 @@ const data = <Article[]>[
         </div>
         <div class="articles-container-bottom">
           <ArticleVue
-            v-for="(article, index) in data"
-            :key="index"
-            :article="article"
-          />
-          <ArticleVue
-            v-for="(article, index) in data"
-            :key="index"
-            :article="article"
-          />
-          <ArticleVue
-            v-for="(article, index) in data"
-            :key="index"
+            v-for="(article) in articles"
+            :key="article.id"
             :article="article"
           />
         </div>
@@ -121,4 +106,3 @@ const data = <Article[]>[
     </div>
   </div>
 </template>
-../models/index

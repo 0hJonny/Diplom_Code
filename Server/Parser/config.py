@@ -24,6 +24,7 @@ Example:
 
 SOURCES = [{
     "name" : "CyberNews",
+    "language_code" : "en",
     "urls" : ["https://cybernews.com/tech",
               "https://cybernews.com/crypto",
               "https://cybernews.com/privacy",

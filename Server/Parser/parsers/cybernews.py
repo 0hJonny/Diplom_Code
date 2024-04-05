@@ -1,4 +1,5 @@
 import logging
+import base64
 from bs4 import BeautifulSoup
 from parsers.base_parser import BaseParser
 from parsers.model_cybernews import Article
@@ -7,21 +8,56 @@ logging.basicConfig(filename='CyberNews.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class CyberNewsParser(BaseParser):
-    def __init__(self, url: str):
+    def __init__(self, url: str, language_code: str):
         super().__init__(url=url)
-        self.data = []
+        self.language_code: str = language_code 
 
-
-    def _get_title_body(self, url: str) -> str:
-        self.url = url
+    def _get_article(self, article: Article):
+        self.url = article.post_href
         response = self._fetch_html()
-        buffer = []
+                
 
         try:
             soup = BeautifulSoup(response, "lxml")
         except TypeError as e:
             logger.error(f"Can't parse the page {self.url}. Check the problem {e}")
-            return ""
+
+        # Get article title
+        try:
+            div_section_body = soup.find('div', class_='section__body')
+            if div_section_body:
+                h1_element = div_section_body.find('h1', class_='heading')
+                if h1_element:
+                    article.title = h1_element.text
+            
+        except AttributeError as e:
+            logger.error(f"AttributeError Title: {e}\nProblem Link: {self.url}")
+
+        # Get article author
+        try:
+            div_author = soup.find('a', class_='article-info__link')
+            if div_author:
+                article.author = div_author.text.replace('\n', '')
+        except AttributeError as e:
+            logger.error(f"AttributeError Author: {e}\nProblem Link: {self.url}")
+
+        # Get article image
+        try:
+            img_element = soup.select_one('article > figure.thumbnail > img')
+            if img_element:
+                article.image = img_element.get('src')
+                # Get bytes from image
+                self.url = article.image
+                response = self._fetch_html()
+                self.url = article.post_href
+                # Convert bytes to base64
+                article.image = base64.b64encode(response).decode('utf-8')
+        except AttributeError as e:
+            logger.error(f"AttributeError Image: {e}\nProblem Link: {self.url}")
+        
+        # Get article content
+
+        buffer = []
 
         content = soup.find("div", class_="content")
 
@@ -42,62 +78,60 @@ class CyberNewsParser(BaseParser):
             except AttributeError as e:
                 logger.error(f"AttributeError: {e}\nProblem Link: {self.url}")
                 return ""
-        # under_target_div = content.find("hr")
-        # under_target_div = soup.find("div", "weekly-deal__title")
-        # if under_target_div is None:
-        #     under_target_div = content.find('h2', id='more-from-cybernews')
 
         for element in text_array_from_page:
             if element == upper_target_break:
                 break
             buffer.append(element.text.strip())
 
-        buffer_text = "\n".join(reversed(buffer)) if under_target_div else "\n".join(buffer)
+        article.body = "\n".join(reversed(buffer)) if under_target_div else "\n".join(buffer)
 
-        return buffer_text
+        return None not in article.__dict__.values()
 
     def _parse(self) -> bool:
         html_content = self._fetch_html()
-        _same_articles = 0
-        if html_content:
-            soup = BeautifulSoup(html_content, "lxml")
-            posts_container = soup.find("div", "cells_space_xl").parent
-
-            posts_title = posts_container.find_all("h3", class_="heading")
-            posts_body = posts_container.find_all("div", class_="cells_responsive")
-
-            # parse elements
-            for title_element, body_element in zip(posts_title, posts_body):
-                post_title = title_element.text
-                post_href = title_element.parent.get('href')
-                author = body_element.find("a", class_="text").text.strip()
-                try:
-                    image_href = body_element.find("img", class_="image").get("data-src")
-                except AttributeError as error:
-                    image_href = None
-                    logger.error(f"{error}")
-                body = self._get_title_body(url=post_href)
-
-                if body == "":
-                    continue
-
-                self.data = Article(title=post_title,
-                                    author=author,
-                                    post_href=post_href,
-                                    body=body,
-                                    image_href=image_href)
-                logger.info(f"Current {self.url}\nTitle: {post_title}\t href: {post_href}")
-                # Send Data to the Server
-                status = self._send_data_to_server(data=self.data.__dict__)
-                if status is True or _same_articles >= 13:
-                    print(f"Some Error ({status})")
-                    return True
-                elif status is False:
-                    _same_articles += 1
-        else:
+        if html_content == None:
             logger.error("Failed to fetch HTML content.")
             return True
 
+        soup = BeautifulSoup(html_content, "lxml")
+        posts_container = soup.find("div", class_="cells_space_xl").parent
+
+        # Initialize list to store all hrefs
+        posts_hrefs = []
+
+        # Focus article Part
+        focus_articles = posts_container.find_all("a", class_="focus-articles__link")
+        for article in focus_articles:
+            focus_article_link = article.get('href')
+            posts_hrefs.append(focus_article_link)
+
+        # Parse elements from page
+        posts_title_elements = posts_container.find_all("h3", class_="heading")
+        for title_element in posts_title_elements:
+            post_href = title_element.parent.get('href')  # Assuming href is stored in the parent element
+            posts_hrefs.append(post_href)
+
+        _same_articles = 0  # Reset _same_articles for each parse
+        for post_href in posts_hrefs:
+            if self._check_article_href(post_href):
+                _same_articles += 1
+                if _same_articles >= 1300:
+                    print("Reached maximum number of same articles.")
+                    return True
+                continue
+
+            article = Article(language_code=self.language_code, post_href=post_href)
+            if not self._get_article(article):
+                continue
+
+            logger.info(f"Current {self.url}\nTitle: {article.title}\t href: {post_href}")
+            # Send Data to the Server
+            status = self._send_data_to_server(data=article.__dict__)
+            if not status:
+                print("Some error occurred during data sending.")
+                return True
+            
     def _pagination(self):
         base_url = self.url
         page_number = 1

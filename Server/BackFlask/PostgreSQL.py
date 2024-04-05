@@ -1,6 +1,6 @@
 DB_INSERT_TABLE_ARTICLES = ("""
-        INSERT INTO articles(title, author, source_link,  body, image_link) 
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO articles(title, author, source_link,  body) 
+        VALUES (%s, %s, %s, %s)
         RETURNING id;
 """)
 

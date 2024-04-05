@@ -1,11 +1,13 @@
-from config import SOURCES
-from parsers.cybernews import CyberNewsParser
 from dotenv import load_dotenv
 from multiprocessing import Process, Semaphore
 
-def process_category(link, semaphore):
+
+from parsers.cybernews import CyberNewsParser
+from config import SOURCES
+
+def process_category(link, language_code, semaphore):
     with semaphore:
-        cybernews_parser = CyberNewsParser(url=link)
+        cybernews_parser = CyberNewsParser(url=link, language_code=language_code)
         cybernews_parser.start()
 
 def main():
@@ -13,7 +15,7 @@ def main():
     processes = []
     for source in SOURCES:
         for link in source["urls"]:
-            p = Process(target=process_category, args=(link, semaphore))
+            p = Process(target=process_category, args=(link, source["language_code"], semaphore))
             p.start()
             processes.append(p)
         

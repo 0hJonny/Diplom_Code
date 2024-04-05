@@ -1,15 +1,45 @@
-export const urls = {
-  getArticlesCount: () => `/api/v1/articles/count`,
-  /**
-   * Returns the API endpoint for fetching a specific page of articles.
-   *
-   * @param {number} page - the page number to fetch
-   * @param {number} perPage - the number of articles per page
-   * @return {string} the API endpoint for the specified page and perPage
-   */
-  getArticles: (page: number, perPage: number) =>
-    `/api/v1/articles?page=${page}&per_page=${perPage}`,
-  getArticle: (slug: string) => `/api/v1/articles/${slug}`,
-};
+// url的链接
+
+export const urls: any = {
+
+  articles: "/articles",
+  articles_count: "/articles/count",
+  articles_annotations: "/articles/annotations",
+  articles_detail: "/articles/", 
+  client_register: "/register",
+  client_login: "/login",
+  client_verify: "/verify"
+}
+
+// export const urls: any = {
+//   login: "login",
+//   logout: "logout",
+//   register: "register",
+//   getUser: "getUser",
+
+//   addComment: "addComment",
+//   addThirdComment: "addThirdComment",
+//   getCommentList: "getCommentList",
+
+//   getArticleList: "getArticleList",
+//   likeArticle: "likeArticle",
+//   getArticleDetail: "getArticleDetail",
+
+//   addMessage: "addMessage",
+//   getMessageList: "getMessageList",
+//   getMessageDetail: "getMessageDetail",
+
+//   getLinkList: "getLinkList",
+
+//   getTagList: "getTagList",
+
+//   getCategoryList: "getCategoryList",
+
+//   getTimeAxisList: "getTimeAxisList",
+//   getTimeAxisDetail: "getTimeAxisDetail",
+
+//   getProjectList: "getProjectList",
+//   getProjectDetail: "getProjectDetail"
+// };
 
 export default urls;

@@ -109,6 +109,13 @@
     transition: 0.13s ease-in-out;
   }
 
+  .pagination-button.active {
+    @apply hover:text-purple-700 hover:bg-violet-50 text-slate-100;
+    /* Your active button styles here */
+    background-color: #991cbe;
+    /* color: var(--color-text-sub); */
+  }
+
   /* Article Card */
   .article-card-body {
     @apply mb-6 rounded-2xl border p-4;

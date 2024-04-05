@@ -82,15 +82,27 @@ INSERT INTO themes (theme_name) VALUES
 	('privacy'), 
 	('security') ON CONFLICT DO NOTHING;;
 
+-- Создание таблицы languages
+CREATE TABLE IF NOT EXISTS languages (
+    language_id BIGSERIAL PRIMARY KEY,
+    language_code VARCHAR(5) UNIQUE NOT NULL,
+    language_name VARCHAR(255) UNIQUE NOT NULL
+);
+
+-- Заполняем таблицу languages
+INSERT INTO languages (language_code, language_name) VALUES
+    ('en', 'English'),
+    ('fr', 'French'),
+    ('de', 'German'),
+    ('ru', 'Russian') ON CONFLICT DO NOTHING;;
+
 -- Создание таблицы articles
 CREATE TABLE IF NOT EXISTS articles (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    title VARCHAR(255) NOT NULL,
     publication_date DATE,
     author VARCHAR(255) NOT NULL,
-    theme_id INTEGER,
-    source_link VARCHAR(255) UNIQUE NOT NULL,
-    image_link VARCHAR(255),
+    theme_id BIGINT,
+    source_link VARCHAR(2048) UNIQUE NOT NULL,
     body TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     FOREIGN KEY (theme_id) REFERENCES themes(theme_id) ON DELETE CASCADE
@@ -98,6 +110,8 @@ CREATE TABLE IF NOT EXISTS articles (
 
 -- Создание индекса
 CREATE INDEX IF NOT EXISTS idx_source_link ON articles (source_link);
+CREATE INDEX IF NOT EXISTS idx_theme_id ON articles (theme_id);
+CREATE INDEX IF NOT EXISTS idx_id_articles ON articles (id);
 
 -- Создание таблицы tags
 CREATE TABLE IF NOT EXISTS tags (
@@ -114,15 +128,42 @@ CREATE TABLE IF NOT EXISTS article_tags (
     PRIMARY KEY (article_id, tag_id)
 );
 
+-- Создание индексов article_tags
+CREATE INDEX IF NOT EXISTS idx_article_id_tag_id_article_tags ON article_tags (article_id, tag_id);
+CREATE INDEX IF NOT EXISTS idx_article_id_article_tags ON article_tags (article_id);
+CREATE INDEX IF NOT EXISTS idx_tag_id_article_tags ON article_tags (tag_id);
+
+
 -- Создание таблицы annotations
 CREATE TABLE IF NOT EXISTS annotations (
     annotation_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    article_id uuid UNIQUE,
+    article_id uuid,
     annotation TEXT NOT NULL,
-    language_code VARCHAR(5),
+    language_id BIGINT,
     created_at TIMESTAMP DEFAULT now(),
-    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+    FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE
 );
+
+-- Создание индексов annotations
+CREATE INDEX IF NOT EXISTS idx_language_id_annotations ON annotations (language_id);
+
+-- Создание таблицы titles
+CREATE TABLE IF NOT EXISTS titles (
+    title_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    article_id uuid,
+    title VARCHAR(255) NOT NULL,
+    language_id BIGINT,
+    created_at TIMESTAMP DEFAULT now(),
+    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+    FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE,
+    CONSTRAINT unique_article_language UNIQUE (article_id, language_id)
+);
+
+
+-- Создание индекса titles
+CREATE INDEX IF NOT EXISTS idx_language_id_titles ON titles (language_id);
+
 
 -- Создание триггера для удаления связанных статей при удалении тега
 CREATE OR REPLACE FUNCTION delete_articles_on_tag_delete()

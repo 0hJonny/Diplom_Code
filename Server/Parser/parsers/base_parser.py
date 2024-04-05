@@ -75,26 +75,40 @@ class BaseParser:
             max_attempts -= 1
         return None
         
+    def _handle_request_exceptions(self, exception):
+        """
+        Обрабатывает исключения при запросах.
+        Возвращает True, если произошла ошибка, и False в противном случае.
+        """
+        if isinstance(exception, requests.exceptions.HTTPError):
+            print(f"HTTP Error: {exception}")
+        elif isinstance(exception, requests.exceptions.ConnectionError):
+            print(f"Error Connecting: {exception}")
+        elif isinstance(exception, requests.exceptions.Timeout):
+            print(f"Timeout Error: {exception}")
+        else:
+            print(f"OOps: Something Else: {exception}")
+        return True
 
+    def _check_article_href(self, href: str) -> bool:
+        try:
+            headers = {"Authorization": f"Bearer {self.api_access_token}"}
+            response = requests.get(f"{self.api_base_url}/articles/check", json={"article_href": href}, headers=headers, timeout=5)
+            response.raise_for_status()
+            return response.json().get("article_exists")
+        except requests.exceptions.RequestException as e:
+            return self._handle_request_exceptions(e)
 
     def _send_data_to_server(self, data) -> bool:
         try:
             headers = {"Authorization": f"Bearer {self.api_access_token}"}
             response = requests.post(f"{self.api_base_url}/articles", json=data, headers=headers, timeout=5)
             response.raise_for_status()
-            # print("Data sent successfully.")
-        except requests.exceptions.HTTPError as errh:
-            print(f"HTTP Error: {errh}")
+            return True
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}")
             return False
-        except requests.exceptions.ConnectionError as errc:
-            print(f"Error Connecting: {errc}")
-            return True
-        except requests.exceptions.Timeout as errt:
-            print(f"Timeout Error: {errt}")
-            return True
-        except requests.exceptions.RequestException as err:
-            print(f"OOps: Something Else: {err}")
-            return True
+        
 
     def parse(self):
         html_content = self._fetch_html()

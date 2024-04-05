@@ -10,18 +10,30 @@ const props = withDefaults(defineProps<{ article: Article }>(), {
    */
   article: () => {
     return {
-      author: "Jane Smith",
-      publishedDate: "2022-03-15",
-      title: "How to Bake the Perfect Chocolate Cake",
-      description:
-        "In this article, we explore the secrets to baking a moist and delicious chocolate cake.",
-      imageLink: "https://example.com/cake.jpg",
-      tags: ["baking", "chocolate", "desserts"],
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      id: "323132-32-3-14--3-453",
+      title: "Example Article Title",
+      publishedDate: "2022-01-01T12:00:00Z",
+      imageLink: "https://example.com/example-article-image.jpg",
+      category: "Example Category",
+      tags: ["Tag 1", "Tag 2", "Tag 3"],
+      content: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, justo ut convallis sollicitudin, magna diam tincidunt orci, ac vulputate purus turpis id est. Duis in lectus vel enim interdum lacinia. Nullam sed justo quis tortor ultrices malesuada. Sed at est sit amet odio mattis lacinia. Sed nec turpis quis purus lobortis consectetur. Sed varius, mauris vitae vulputate vehicula, est velit tincidunt eros, in porta leo felis id metus. Sed lacinia, purus id consectetur auctor, nunc magna pharetra ipsum, nec bibendum lorem turpis id diam.`,
     };
   },
 });
+
+function formatDate(date: string) {
+  const dateObj: Date = new Date(date);
+
+  // Format the date as desired
+  const formattedDate: string = dateObj.toLocaleDateString("en-US", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+  });
+  return formattedDate;
+}
+
 </script>
 <template>
   <div class="article-card-body flex flex-col">
@@ -32,9 +44,9 @@ const props = withDefaults(defineProps<{ article: Article }>(), {
     />
     <div>
       <div class="card-meta flex gap-1 font-semibold text-sm text-violet-700">
-        <h3 class="card-meta-author">{{ article.author }}</h3>
+        <h3 class="card-meta-author">{{ article.category }}</h3>
         <h3 class="card-meta-separator">•</h3>
-        <h3 class="card-meta-date">{{ article.publishedDate }}</h3>
+        <h3 class="card-meta-date">{{ formatDate(article.publishedDate) }}</h3>
       </div>
       <div class="article-card-title flex justify-between">
         <h2>{{ article.title }}</h2>
@@ -48,7 +60,7 @@ const props = withDefaults(defineProps<{ article: Article }>(), {
         <p
           class="font-normal text-base text-slate-600 article-truncate-lines-2"
         >
-          {{ article.description }}
+          {{ article.content }}
         </p>
       </div>
     </div>
@@ -61,4 +73,4 @@ const props = withDefaults(defineProps<{ article: Article }>(), {
     </div>
   </div>
 </template>
-../models/index
+<!-- ../models/index -->

@@ -7,4 +7,4 @@ class Article:
     author: str
     post_href: str
     body: str
-    image_href: str
+    image: str
