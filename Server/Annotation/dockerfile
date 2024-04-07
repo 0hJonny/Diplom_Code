@@ -1,5 +1,5 @@
 # Set the base image and install cron
-FROM hlohaus789/g4f:latest
+FROM python:3.11-slim-bookworm
 
 # Set the working directory
 WORKDIR /app

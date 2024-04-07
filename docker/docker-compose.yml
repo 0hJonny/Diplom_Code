@@ -80,12 +80,27 @@ services:
       # - 7900:7900
     environment:
       FLASK_API: http://python-flask-server:5000/api/v1
+      API_OLLAMA_URL: http://ollama-hub:11434
     volumes:
       - ../Server/Annotation:/app
     restart: always
     shm_size: "2g"
     depends_on:
       - python-flask-server
+
+# Ollama hub
+  ollama-hub:
+    image: ollama/ollama
+    container_name: ollama-hub
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: always
+    depends_on:
+      - python-flask-server
+      - python-annotator
+
   # Flask Server
   python-flask-server:
     build:
@@ -133,5 +148,8 @@ services:
   #   volumes:
   #     - .:/app 
   #   restart: always
+
+volumes:
+  ollama_data:
   
 

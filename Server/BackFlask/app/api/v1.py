@@ -227,7 +227,51 @@ def annotations_api_last_needed():
     if request.method == 'POST':
         pass
 
+@api_v1_bp.route('/articles/annotations/<uuid:article_id>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@jwt_required()
+def article_annotations_api_by_id(article_id):
+    current_user = get_jwt_identity()
 
+    if request.method == 'GET':
+        article_id = str(article_id)
+
+        query = """
+
+        SELECT 
+            articles.id AS id,
+            titles.title AS title,
+            articles.body AS body,
+            languages.language_code AS language_code
+        FROM 
+            articles
+        JOIN 
+            titles ON articles.id = titles.article_id
+        JOIN 
+            languages ON titles.language_id = languages.language_id
+        WHERE 
+            articles.id = %s;
+        """
+
+        with psycopg2.connect(articles_connection) as connection:
+            with connection.cursor() as cursor:
+                try:
+                    cursor.execute(query, (article_id,))
+                    article = cursor.fetchone()
+                except psycopg2.Error as err:
+                    return f"Database error: {err}", 500
+        if article:
+            return jsonify(article), 200
+        else:
+            return jsonify({'error': 'Article not found'}), 404
+
+    if request.method == 'POST':
+        pass
+
+    if request.method == 'PUT':
+        pass
+
+    if request.method == 'DELETE':
+        pass
 
 @api_v1_bp.route('/articles/<uuid:article_id>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @jwt_required()
@@ -285,7 +329,7 @@ def article_api_by_id(article_id):
 
         if request.is_json:
             requested_data = request.get_json()
-            data = ArticleAnnotation.from_json(requested_data)
+            data = ArticleAnnotation.get_json(requested_data)
 
             # Check if the article ID in the request body matches the article ID in the URL
             if data.id != article_id:

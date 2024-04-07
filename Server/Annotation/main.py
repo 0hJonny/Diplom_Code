@@ -1,23 +1,19 @@
-from dotenv import load_dotenv
-from annotator import GPTAnnotator, Client
-from multiprocessing import Pool
 
 
-def process_article(article_id):
-    gpt = GPTAnnotator(*article_id)
-    while not gpt.do_annotate():
-        pass
-    gpt.do_summarize()
+from utils import Client, QueueManager
+from services import ArticleService
+from models.GenerationModels import Mistral, Gemma_2b
 
 
 def main():
-    client = Client()
-    articles_queue = client.get_articles_queue()
-    print("Await of articles: ", len(articles_queue))
-    with Pool(processes=2) as pool:
-        pool.map(process_article, articles_queue)
-
+    Manager = QueueManager()
+    queue = Manager.get_queue()[0]
+    for  article_id in queue:
+        Worker = Client(article_id)
+        Worker.article = ArticleService().extract_tags(Worker.article, model=Gemma_2b())
+        Worker.article = ArticleService().categorize(Worker.article, model=Mistral())
+        print(Worker.article)
+        
 
 if __name__ == "__main__":
-    load_dotenv()
     main()
