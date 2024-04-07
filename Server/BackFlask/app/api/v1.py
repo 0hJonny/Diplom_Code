@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from utils.database import articles_connection
-from models import Article, Annotation
+from models import ArticleParser, ArticleAnnotation
 from utils import MinioClientFactory
 
 api_v1_bp = Blueprint('api_v1', __name__)
@@ -20,9 +20,9 @@ def get_language_id(language_code, cursor):
 
 
 @api_v1_bp.route('/articles/check', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def article_check():
-    # current_user = get_jwt_identity()
+    current_user = get_jwt_identity()
 
     if request.method == 'GET':
 
@@ -96,6 +96,9 @@ def protected_articles():
         # Вычисляем смещение на основе номера страницы
         offset = (page - 1) * limit
 
+        # TODO Проверка на раодной язык, если у статьи articles.language_id не равен языкам из других таблиц, значи язык - не родной
+
+
         query = """
             SELECT 
                 articles.id, 
@@ -146,7 +149,7 @@ def protected_articles():
         if request.is_json:
             requested_data = request.get_json()
             language_code = requested_data["language_code"]
-            data = Article(
+            data = ArticleParser(
                 title=requested_data['title'],
                 author=requested_data["author"],
                 post_href=requested_data["post_href"],
@@ -156,19 +159,20 @@ def protected_articles():
             with psycopg2.connect(articles_connection) as connection:
                 with connection.cursor() as cursor:
                     try:
+
+                        # Получение идентификатора языка
+                        language_id = get_language_id(language_code, cursor)
+
                         # Вставка статьи в таблицу articles
                         # Подготовка SQL-запроса с использованием параметров
-                        query = "INSERT INTO articles (author, source_link, body) VALUES (%s, %s, %s) RETURNING id"
-                        data_values = (data.author, data.post_href, data.body)
+                        query = "INSERT INTO articles (author, source_link, body, language_id) VALUES (%s, %s, %s, %s) RETURNING id"
+                        data_values = (data.author, data.post_href, data.body, language_id)
 
                         # Выполнение запроса с использованием параметров
                         cursor.execute(query, data_values)
 
                         # Получение значения id добавленной статьи
                         article_id = cursor.fetchone()[0]
-
-                        # Получение идентификатора языка
-                        language_id = get_language_id(language_code, cursor)
 
                         # Вставка заголовка статьи в таблицу titles
                         query = "INSERT INTO titles (article_id, title, language_id) VALUES (%s, %s, %s)"
@@ -196,9 +200,9 @@ def protected_articles():
 
 
 @api_v1_bp.route('/articles/annotations', methods=['GET', 'POST'])
-# @jwt_required()
+@jwt_required()
 def annotations_api_last_needed():
-    # current_user = get_jwt_identity()
+    current_user = get_jwt_identity()
     
     if request.method == 'GET':
         query = """
@@ -236,15 +240,14 @@ def article_api_by_id(article_id):
         query = """
             SELECT 
                 articles.id, 
-                articles.title, 
+                titles.title, 
                 articles.created_at,
                 articles.source_link,  
-                articles.image_link,
                 articles.body, 
                 themes.theme_name,
                 json_agg(tags.tag_name) AS tags,
                 annotations.annotation,
-                annotations.language_code
+                languages.language_code
             FROM 
                 articles
             LEFT JOIN 
@@ -255,10 +258,14 @@ def article_api_by_id(article_id):
                 tags ON article_tags.tag_id = tags.tag_id
             LEFT JOIN 
                 annotations ON articles.id = annotations.article_id
+            LEFT JOIN
+                titles ON articles.id = titles.article_id
+            LEFT JOIN
+                languages ON titles.language_id = languages.language_id
             WHERE 
                 articles.id = %s
             GROUP BY 
-                articles.id, themes.theme_name, annotations.annotation, annotations.language_code;
+                articles.id, titles.title, themes.theme_name, annotations.annotation, languages.language_code;
         """
 
         with psycopg2.connect(articles_connection) as connection:
@@ -278,26 +285,15 @@ def article_api_by_id(article_id):
 
         if request.is_json:
             requested_data = request.get_json()
-            data = Annotation(
-                id=requested_data['id'],
-                title=requested_data['title'],
-                created_at=requested_data['created_at'],
-                source_link=requested_data['source_link'],
-                image_link=requested_data['image_link'],
-                body=requested_data['body'],
-                theme_name=requested_data['theme_name'],
-                tags=requested_data['tags'],
-                annotation=requested_data.get('annotation'),
-                language_code=requested_data['language_code']
-            )
+            data = ArticleAnnotation.from_json(requested_data)
 
             # Check if the article ID in the request body matches the article ID in the URL
             if data.id != article_id:
                 return jsonify({'error': 'Article ID in the request body does not match the article ID in the URL'}), 400
 
             query_annotation = """
-                INSERT INTO annotations (article_id, annotation, language_code)
-                VALUES (%s, %s, %s)
+                INSERT INTO annotations (article_id, annotation, language_code, neural_network)
+                VALUES (%s, %s, %s, %s)
             """
             with psycopg2.connect(articles_connection) as connection:
                 with connection.cursor() as cursor:
@@ -305,8 +301,22 @@ def article_api_by_id(article_id):
                         # Получение language_id для указанного языка
                         language_id = get_language_id(data.language_code, cursor)
 
+                         # Запрос language_id из таблицы articles для указанного article_id
+                        query_article_language_id = "SELECT language_id FROM articles WHERE id = %s"
+                        cursor.execute(query_article_language_id, (data.id,))
+                        article_language_id = cursor.fetchone()[0]
+
+                        # Проверка, отличаются ли language_id
+                        if article_language_id != language_id:
+                            # Вставка заголовка в таблицу titles
+                            query_title = """
+                                INSERT INTO titles (article_id, title, language_id, neural_network)
+                                VALUES (%s, %s, %s, %s)
+                            """
+                            cursor.execute(query_title, (data.id, data.title, language_id, data.neural_networks["translator"]))
+
                         # Вставка аннотации
-                        cursor.execute(query_annotation, (data.id, data.annotation, language_id))
+                        cursor.execute(query_annotation, (data.id, data.annotation, language_id, data.neural_networks["annotator"]))
 
                         # Вставка темы, если она не существует, и получение ее theme_id
                         theme_id = insert_theme(data.theme_name, cursor)

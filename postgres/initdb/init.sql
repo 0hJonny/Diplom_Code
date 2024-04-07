@@ -104,8 +104,10 @@ CREATE TABLE IF NOT EXISTS articles (
     theme_id BIGINT,
     source_link VARCHAR(2048) UNIQUE NOT NULL,
     body TEXT NOT NULL,
+    language_id BIGINT, -- Новое поле для хранения идентификатора языка
     created_at TIMESTAMP DEFAULT now(),
-    FOREIGN KEY (theme_id) REFERENCES themes(theme_id) ON DELETE CASCADE
+    FOREIGN KEY (theme_id) REFERENCES themes(theme_id) ON DELETE CASCADE,
+    FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE
 );
 
 -- Создание индекса
@@ -140,6 +142,7 @@ CREATE TABLE IF NOT EXISTS annotations (
     article_id uuid,
     annotation TEXT NOT NULL,
     language_id BIGINT,
+    neural_network VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
     FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE
@@ -154,6 +157,7 @@ CREATE TABLE IF NOT EXISTS titles (
     article_id uuid,
     title VARCHAR(255) NOT NULL,
     language_id BIGINT,
+    neural_network VARCHAR(255) DEFAULT 'native' NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
     FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE,

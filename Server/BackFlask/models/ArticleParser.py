@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Article:
+class ArticleParser:
     title: str
     author: str
     post_href: str

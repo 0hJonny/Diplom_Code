@@ -1,2 +1,2 @@
-from .annotation import Annotation
-from .articles import Article
+from .ArticleAnnotation import ArticleAnnotation
+from .ArticleParser import ArticleParser

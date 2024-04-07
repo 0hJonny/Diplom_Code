@@ -41,7 +41,7 @@ class GPTAnnotator(Client):
         for step in ('annotation', 'themes', 'tags'):
             text_respone : str = None
             while not getattr(self.prompt, f'set_{step}')(text_respone):
-                text_respone = self._call_Liao(getattr(self.prompt, step).get_prompt)
+                text_respone = self._call_GPT(getattr(self.prompt, step).get_prompt)
                 print(text_respone)
 
         return True

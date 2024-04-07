@@ -32,7 +32,7 @@ parsed_content = base_parser.parse()
 class BaseParser:
     def __init__(self, url: str):
         self.url:str = url
-        self.scraper:cloudscraper = cloudscraper.create_scraper(delay=6, browser={"browser": "chrome", "device": "ipad"})
+        self.scraper:cloudscraper = cloudscraper.create_scraper(delay=6, browser={"browser": "firefox", "device": "ipad"})
         self.api_access_token:str = ""
         self.api_user_login:str = os.getenv("API_USER_LOGIN")
         self.api_user_password:str = os.getenv("API_USER_PASSWORD")

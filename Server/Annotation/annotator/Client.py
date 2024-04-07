@@ -42,5 +42,6 @@ class Client:
         self.set_article(article)
         headers = {"Authorization": f"Bearer {self.api_access_token}"}
         data = self.article.__dict__
-        response = requests.post(f"{self.api_base_url}/articles/annotations", json=data, headers=headers)
-        return response.status_code
+        print(data)
+        # response = requests.post(f"{self.api_base_url}/articles/annotations", json=data, headers=headers)
+        # return response.status_code
