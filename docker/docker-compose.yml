@@ -3,11 +3,10 @@ services:
 # Init Database
   # Postgres
   postgres:
-    # image: ${IMAGE_POSTGRES}
+    container_name: postgres
     build:
      context: ../postgres
      dockerfile: Dockerfile
-    container_name: postgres
     shm_size: 1g
     restart: always
     volumes:
@@ -25,10 +24,13 @@ services:
       DATASOURCE_USER: ${DATASOURCE_USER}
       TZ: 'Asia/Yekaterinburg'
       PGTZ: 'Asia/Yekaterinburg'
+    networks:
+      - db_network
+
   # PgAdmin
   pgadmin:
-    image: dpage/pgadmin4
     container_name: pgadmin4
+    image: dpage/pgadmin4
     environment:
       PGADMIN_LISTEN_PORT: 5050
       PGADMIN_LISTEN_ADDRESS: 0.0.0.0
@@ -41,10 +43,13 @@ services:
     volumes:
       - /opt/postgres/pgadmin:/var/lib/pgadmin
     restart: always
+    networks:
+      - db_network
+
   # Minio
   minio:
-    image: bitnami/minio:2023.6.23
     container_name: minio
+    image: bitnami/minio:2023.6.23
     ports:
       - '${MINIO_API_PORT}:9000'
       - '9001:9001'
@@ -54,13 +59,16 @@ services:
     volumes:
       - /opt/minio/data:/data
       - /opt/exchange:/opt/exchange
+    networks:
+      - app_network
+
 # Python Server
   # Parser
   python-parser:
+    container_name: python-parser
     build:
       context: ../Server/Parser
       dockerfile: Dockerfile
-    container_name: python-parser
     environment:
       FLASK_API: http://python-flask-server:5000/api/v1
     volumes:
@@ -68,30 +76,34 @@ services:
     restart: always
     depends_on:
       - python-flask-server
+    networks:
+      - app_network
+  
   # annotator
   python-annotator:
+    container_name: python-annotator
     build:
       context: ../Server/Annotation
       dockerfile: Dockerfile
-    container_name: python-annotator
-    # ports:
-      # - 8080:8080
-      # - 1337:1337 
-      # - 7900:7900
     environment:
       FLASK_API: http://python-flask-server:5000/api/v1
       API_OLLAMA_URL: http://ollama-hub:11434
     volumes:
       - ../Server/Annotation:/app
     restart: always
-    shm_size: "2g"
     depends_on:
       - python-flask-server
+    networks:
+      - app_network
+      - ollama_network
 
 # Ollama hub
   ollama-hub:
-    image: ollama/ollama
     container_name: ollama-hub
+    build:
+      context: ../ollama
+      dockerfile: Dockerfile
+    runtime: nvidia
     ports:
       - "11434:11434"
     volumes:
@@ -100,6 +112,8 @@ services:
     depends_on:
       - python-flask-server
       - python-annotator
+    networks:
+      - ollama_network
 
   # Flask Server
   python-flask-server:
@@ -124,6 +138,9 @@ services:
     restart: always
     depends_on:
       - postgres
+    networks:
+      - db_network
+      - app_network
 # Init Web
   vue-app:
     container_name: vue-app
@@ -139,6 +156,8 @@ services:
     restart: always
     depends_on:
       - python-flask-server
+    networks:
+      - app_network
   # vue-app:
   #   build:
   #     context: .
@@ -149,7 +168,21 @@ services:
   #     - .:/app 
   #   restart: always
 
+# Volumes
 volumes:
   ollama_data:
   
-
+# Networks
+networks:
+  db_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.0.0/28
+  ollama_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.1.0/28
+  app_network:
+    driver: bridge

@@ -195,6 +195,26 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Инициализация таблиц в users
 
+
+-- Создание таблицы ролей
+CREATE TABLE IF NOT EXISTS roles (
+    role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- Добавление ролей
+INSERT INTO roles (role_name) VALUES
+    ('admin'),
+    ('user');
+
+CREATE OR REPLACE FUNCTION get_role_id(role_name VARCHAR)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (SELECT role_id FROM roles WHERE role_name = role_name);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Создание таблицы пользователей с полем для роли
 CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
@@ -205,8 +225,11 @@ CREATE TABLE IF NOT EXISTS users (
     birthdate DATE,
     avatar VARCHAR(255),
     confirmed BOOLEAN DEFAULT FALSE, -- Поле для отслеживания подтверждения учетной записи
-    created_at TIMESTAMP DEFAULT now()
+    created_at TIMESTAMP DEFAULT now(),
+    role_id INTEGER DEFAULT get_role_id('user'),
+    FOREIGN KEY (role_id) REFERENCES roles(role_id)
 );
+
 
 -- Функция для хэширования пароля при вставке новой записи
 CREATE OR REPLACE FUNCTION hash_password()
