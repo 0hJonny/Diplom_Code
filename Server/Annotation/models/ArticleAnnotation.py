@@ -1,5 +1,3 @@
-import re
-
 from dataclasses import dataclass, field
 
 @dataclass
@@ -33,31 +31,6 @@ class ArticleAnnotation:
             return False
         if self.neural_networks is None:
             return False
-        if not self.check_annotation():
-            return False
-        return True
-
-    def check_annotation(self):
-
-        # Регулярное выражение для поиска заголовков в формате "### Название раздела:"
-        pattern = r'###\s*([^:\n]+):'
-        
-        # Поиск всех заголовков в тексте
-        matches = re.findall(pattern, self.annotation)
-        
-        # Проверка наличия всех необходимых заголовков
-        required_headings = [
-            "Main Facts and Events",
-            "Key Ideas",
-            "Further Interest",
-            "Important Keywords",
-            "Highlighted Text"
-        ]
-        for heading in required_headings:
-            if heading not in matches:
-                return False
-        
-        # Если все заголовки найдены, возвращаем True
         return True
 
 
