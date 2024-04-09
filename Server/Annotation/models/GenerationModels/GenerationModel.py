@@ -10,8 +10,7 @@ class GenerationModel:
             "stream": False,  # Placeholder for stream option
             "options": {
                 "temperature": 0.8,  # Placeholder for temperature option
-                "repeat_penalty": 1.0,  # Placeholder for repeat_penalty option
-                # "num_thread": 8  # Placeholder for num_thread option
+                "repeat_penalty": 1.0  # Placeholder for repeat_penalty option
             }
         }
 

@@ -91,28 +91,24 @@ CREATE TABLE IF NOT EXISTS languages (
 
 -- Заполняем таблицу languages
 INSERT INTO languages (language_code, language_name) VALUES
+    ('ru', 'Russian'),
     ('en', 'English'),
     ('fr', 'French'),
-    ('de', 'German'),
-    ('ru', 'Russian') ON CONFLICT DO NOTHING;;
+    ('de', 'German') ON CONFLICT DO NOTHING;;
 
 -- Создание таблицы articles
 CREATE TABLE IF NOT EXISTS articles (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    publication_date DATE,
     author VARCHAR(255) NOT NULL,
-    theme_id BIGINT,
     source_link VARCHAR(2048) UNIQUE NOT NULL,
     body TEXT NOT NULL,
     language_id BIGINT, -- Новое поле для хранения идентификатора языка
     created_at TIMESTAMP DEFAULT now(),
-    FOREIGN KEY (theme_id) REFERENCES themes(theme_id) ON DELETE CASCADE,
     FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE
 );
 
 -- Создание индекса
 CREATE INDEX IF NOT EXISTS idx_source_link ON articles (source_link);
-CREATE INDEX IF NOT EXISTS idx_theme_id ON articles (theme_id);
 CREATE INDEX IF NOT EXISTS idx_id_articles ON articles (id);
 
 -- Создание таблицы tags
@@ -145,7 +141,8 @@ CREATE TABLE IF NOT EXISTS annotations (
     neural_network VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
-    FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE
+    FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE,
+    CONSTRAINT unique_annotation_language UNIQUE (article_id, language_id)
 );
 
 -- Создание индексов annotations
@@ -210,7 +207,7 @@ INSERT INTO roles (role_name) VALUES
 CREATE OR REPLACE FUNCTION get_role_id(role_name VARCHAR)
 RETURNS INTEGER AS $$
 BEGIN
-    RETURN (SELECT role_id FROM roles WHERE role_name = role_name);
+    RETURN (SELECT role_id FROM roles WHERE roles.role_name = get_role_id.role_name);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -344,3 +341,8 @@ CREATE TRIGGER check_and_delete_invalid_history_trigger
 BEFORE INSERT ON history
 FOR EACH ROW
 EXECUTE FUNCTION check_and_delete_invalid_history();
+
+-- Add super user
+-- !!! WILL BE USE SED IN THE DOCKERFILE TO CHANGE THE VARS ${...}!!!
+INSERT INTO users (username, password, role_id, confirmed)
+VALUES ('${ADMIN_USERNAME}', '${ADMIN_PASSWORD}', get_role_id('admin'), TRUE);

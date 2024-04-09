@@ -14,6 +14,7 @@ class User_model:
     avatar: str
     confirmed: bool = False
     created_at: Timestamp = field(default_factory=Timestamp)
+    role_id: int = field(default_factory=int)
 
 @dataclass
 class User:

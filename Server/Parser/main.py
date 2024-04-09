@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 from multiprocessing import Process, Semaphore
 
 
@@ -23,5 +22,4 @@ def main():
             p.join()
 
 if __name__ == "__main__":
-    load_dotenv()
     main()

@@ -10,8 +10,7 @@ class Gemma_2b(GenerationModel):
             "stream": False,  # Placeholder for stream option
             "options": {
                 "temperature": 0.7,  # Placeholder for temperature option
-                "repeat_penalty": 1.0,  # Placeholder for repeat_penalty option
-                # "num_thread": 8  # Placeholder for num_thread option
+                "repeat_penalty": 1.0  # Placeholder for repeat_penalty option
             }
         }
     
@@ -35,33 +34,69 @@ class Gemma_2b(GenerationModel):
         
     def translate(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
-            Translate article to russian. 
-            Article title: %s
-            Article content: %s
+            Translate article title to %s language. Safe the structure. 
+            Article title is "%s"
             """
-        prompt = prompt % (article.title, article.body)
-        return self._generate_text(prompt=prompt, stream=stream, options=options)
+        prompt = prompt % (article.language_to_answer_name, article.title)
+
+        answer = self._generate_text(prompt=prompt, stream=stream, options=options)
+
+        article.title = answer.response
+
+        prompt = """
+            Translate article annotation to %s language. Safe the structure. 
+            Article annotation: %s
+            """
+            
+        if article.annotation is None:
+            raise Exception("Annotation is None. Write annotation before translating.")
+
+        prompt = prompt % (article.language_to_answer_name, article.annotation)
+
+        answer = self._generate_text(prompt=prompt, stream=stream, options=options)
+
+        article.annotation = answer.response
+
+        article.neural_networks["translator"] = self.model_name
+        
+        return article
         
     def categorize(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
-            Categorize article by theme. Write one word only!. Article title: %s
-            Article content: %s
+            Article:
+            '''
+            Title: %s
+            Content: %s
+            '''
+            Classify the article to one of the topics. Select a topic for the article: 
+            "technology", 
+            "crypto", 
+            "privacy", 
+            "security".
+            Write only one the topic!.
             """
+        
         prompt = prompt % (article.title, article.body)
         
         answer = self._generate_text(prompt=prompt, stream=stream, options=options)
         
-        article.theme_name = answer.response
+        article.theme_name = answer.response.lower().replace('*', '')
+
+        ## TODO CHECK FOR THEMES CLASSIFY
         
         return article
         
     def extract_tags(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
-            Extract tags representing the main points of the article. Provide tags encapsulating core concepts, distinguishing features, or key takeaways. 
-            Tags should be concise, reflecting one or two words of the main points of the article. Answer in format: [#tag1, #tag2,... #tags] like array of tags. 
-            Example: Tags must has one or two words of main points of the Article. Write tags in camel style.
-            Article title: %s
-            Article content: %s
+            Article:
+            '''
+            Title: %s
+            Content: %s
+            '''
+            What is tags of the Article? Tag is representing the main points of the article. 
+            Tags should be concise, reflecting one or two words of the main points of the article.
+            Answer in format: [tag1, tag2,... tags] like array of tags. 
+            Example: Tags must has one or two words of main points of the Article.
             """
         prompt = prompt % (article.title, article.body)
     
@@ -69,6 +104,7 @@ class Gemma_2b(GenerationModel):
 
         # tags_line = answer.response.split()
         # article.tags = [tag.replace("#", '').replace('\n','') for tag in tags_line]
-        article.tags = answer.response.replace('#', '').split('\n')
+        tag_list = answer.response.replace("[", "").replace("]", "").replace("'", "").replace(' ', '').split(',')
+        [article.add_tag(tag.capitalize()) for tag in tag_list]
 
         return article

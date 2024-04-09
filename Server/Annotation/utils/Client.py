@@ -10,3 +10,12 @@ class Client:
         
     def get_article(self, article_id: str):
         self.article = ArticleAnnotation.get_json(ServerInterface.get_article(article_id, self.user.get_token())[0])
+
+    def send_article(self) -> bool:
+        if not self.article.check_article_annotation():
+            return False 
+
+        if ServerInterface.send_annotation(self.article.id, self.article, self.user.get_token()) == 201:
+            return True
+        else:
+            raise "Server error!"

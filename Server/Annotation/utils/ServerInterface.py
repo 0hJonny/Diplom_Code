@@ -2,6 +2,8 @@ from typing import List, Tuple, Optional
 import requests
 import os
 
+from models import ArticleAnnotation
+
 class ServerInterface:
     api_base_url: str = os.getenv("FLASK_API")
 
@@ -18,10 +20,14 @@ class ServerInterface:
         return response.json(), response.status_code
 
     @staticmethod
-    def send_annotation(article_id: str, annotation: str, user_token: str) -> int:
+    def send_annotation(article_id: str, article: ArticleAnnotation, user_token: str) -> int:
         headers = {"Authorization": f"Bearer {user_token}"}
-        data = {"article_id": article_id, "annotation": annotation}
-        response = requests.post(f"{ServerInterface.api_base_url}/articles/articles/{article_id}", headers=headers, json=data)
+        data = article.__dict__
+        response = requests.post(
+            f"{ServerInterface.api_base_url}/articles/annotations/{article_id}",
+            headers=headers,
+            json=data,  # Convert ArticleAnnotation object to a dictionary before sending
+        )
         return response.status_code
 
     @staticmethod
