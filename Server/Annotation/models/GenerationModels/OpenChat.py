@@ -42,7 +42,16 @@ class OpenChat(GenerationModel):
         prompt = prompt % (article.title, article.body)
 
         answer: GenerationResponse = self._generate_text(prompt=prompt, stream=stream, options=options)
-        article.annotation = answer.response
+        
+        answer = answer.response
+
+        index = answer.find('###')
+
+        if index != -1:
+            answer = answer[index:]
+        article.annotation = answer
+        
+        article.annotation = answer
         article.neural_networks["annotator"] = self.model_name
         
         return article

@@ -246,7 +246,6 @@ def article_annotations_api_by_id(article_id):
     if request.method == 'GET':
         article_id = str(article_id)
 
-        
         query = """
             SELECT 
                 a.id AS article_id,
@@ -258,7 +257,7 @@ def article_annotations_api_by_id(article_id):
             FROM 
                 articles a
             LEFT JOIN 
-                titles t ON a.id = t.article_id
+                titles t ON a.id = t.article_id AND t.language_id = a.language_id
             LEFT JOIN 
                 languages ln ON a.language_id = ln.language_id
             CROSS JOIN 
@@ -275,9 +274,41 @@ def article_annotations_api_by_id(article_id):
                         AND an.language_id = la.language_id
                 )
             ORDER BY 
-                la.language_id
+                ln.language_id
             LIMIT 1;
         """
+        
+        # query = """
+        #     SELECT 
+        #         a.id AS article_id,
+        #         t.title,
+        #         a.body,
+        #         ln.language_code AS language_native_code,
+        #         la.language_code AS language_to_answer_code,
+		# 		la.language_name as language_to_answer_name
+        #     FROM 
+        #         articles a
+        #     LEFT JOIN 
+        #         titles t ON a.id = t.article_id
+        #     LEFT JOIN 
+        #         languages ln ON a.language_id = ln.language_id
+        #     CROSS JOIN 
+        #         languages la
+        #     WHERE 
+        #         a.id = %s
+        #         AND NOT EXISTS (
+        #             SELECT 
+        #                 1 
+        #             FROM 
+        #                 annotations an 
+        #             WHERE 
+        #                 an.article_id = a.id 
+        #                 AND an.language_id = la.language_id
+        #         )
+        #     ORDER BY 
+        #         la.language_id
+        #     LIMIT 1;
+        # """
 
         with psycopg2.connect(articles_connection) as connection:
             with connection.cursor() as cursor:

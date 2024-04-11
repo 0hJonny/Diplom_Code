@@ -39,6 +39,7 @@ class GenerationModel:
         if options is None:
             options = self.data["options"]
 
+
         data = {
             "model": self.model_name,
             "prompt": prompt,
