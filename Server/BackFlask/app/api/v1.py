@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from utils.database import articles_connection
-from models import ArticleParser, ArticleAnnotation
+from models import ArticleParser, ArticleAnnotation, ArticleWeb
 from utils import MinioClientFactory
 
 api_v1_bp = Blueprint('api_v1', __name__)
@@ -48,6 +48,7 @@ def article_check():
 @api_v1_bp.route('/articles/count', methods=['GET'])
 def articles_count():
     if request.method == 'GET':
+        language_code = request.args.get('language_code', default='en')
         category = request.args.get('category', default='')
 
         query_count = """
@@ -65,15 +66,16 @@ def articles_count():
             query_count += " WHERE themes.theme_name = %s AND annotations.article_id IS NOT NULL"
         else:
             query_count += " WHERE annotations.article_id IS NOT NULL"
+        query_count += " AND annotations.language_id = (SELECT language_id FROM languages WHERE language_code = %s)"
         query_count += ";"
 
         with psycopg2.connect(articles_connection) as connection:
             with connection.cursor() as cursor:
                 try:
                     if category:
-                        cursor.execute(query_count, (category,))
+                        cursor.execute(query_count, (category, language_code))
                     else:
-                        cursor.execute(query_count)
+                        cursor.execute(query_count, (language_code,))
                     count = cursor.fetchone()[0]
                     result = {"count": count}
                     return jsonify(result)
@@ -104,7 +106,6 @@ def protected_articles():
                 articles.id, 
                 COALESCE(titles.title, '') AS title, 
                 articles.created_at, 
-                articles.image_link, 
                 themes.theme_name,
                 json_agg(tags.tag_name) AS tags,
                 annotations.annotation
@@ -117,7 +118,9 @@ def protected_articles():
             LEFT JOIN 
                 tags ON article_tags.tag_id = tags.tag_id
             LEFT JOIN 
-                annotations ON articles.id = annotations.article_id
+                annotations ON articles.id = annotations.article_id AND annotations.language_id = (
+                    SELECT language_id FROM languages WHERE language_code = %s
+                )
             LEFT JOIN
                 titles ON articles.id = titles.article_id AND titles.language_id = (
                     SELECT language_id FROM languages WHERE language_code = %s
@@ -137,10 +140,10 @@ def protected_articles():
             with connection.cursor() as cursor:
                 try:
                     if category:
-                        cursor.execute(query, (language_code, category, limit, offset))
+                        cursor.execute(query, (language_code, language_code, category, limit, offset))
                     else:
-                        cursor.execute(query, (language_code, limit, offset))
-                    articles = cursor.fetchall()
+                        cursor.execute(query, (language_code, language_code, limit, offset))
+                    articles = [ArticleWeb(*data, language_code=language_code, image_source=f"/images/{data[0]}.png") for data in cursor.fetchall()]
                     return jsonify(articles)
                 except psycopg2.Error as err:
                     return f"Database error: {err}", 500

@@ -102,8 +102,10 @@ CREATE TABLE IF NOT EXISTS articles (
     author VARCHAR(255) NOT NULL,
     source_link VARCHAR(2048) UNIQUE NOT NULL,
     body TEXT NOT NULL,
+    theme_id BIGINT,
     language_id BIGINT, -- Новое поле для хранения идентификатора языка
     created_at TIMESTAMP DEFAULT now(),
+    FOREIGN KEY (theme_id) REFERENCES themes(theme_id) ON DELETE CASCADE,
     FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE
 );
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
-import TitleHeader from "./TitleHeader.vue";
 import ThemeSwitcher from "./ThemeSwitcher.vue";
+import SideBar from "./SideBar.vue";
 </script>
 
 <template>
@@ -9,14 +9,16 @@ import ThemeSwitcher from "./ThemeSwitcher.vue";
     <div class="header-container border-b-2 border-slate-300">
       <nav class="header-container-nav header-text">
         <div class="header-left-side">
-          <RouterLink to="profiles" class="flex gap-1">
+          <SideBar />
+
+          <!-- <RouterLink to="profiles" class="flex gap-1">
             <img
               class="header-icon invert dark:invert-0"
               src="/profile-circle.svg"
               alt="profile-icon"
             />
             <h2 class="profile-text">Profile</h2>
-          </RouterLink>
+          </RouterLink> -->
         </div>
         <div class="header-right-side flex gap-4 items-center">
           <div>
@@ -50,6 +52,5 @@ import ThemeSwitcher from "./ThemeSwitcher.vue";
         </div>
       </nav>
     </div>
-    <TitleHeader titleHeader="it news" />
   </header>
 </template>

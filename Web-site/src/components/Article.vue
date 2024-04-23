@@ -16,37 +16,24 @@ const props = withDefaults(defineProps<{ article: Article }>(), {
       imageLink: "https://example.com/example-article-image.jpg",
       category: "Example Category",
       tags: ["Tag 1", "Tag 2", "Tag 3"],
-      content: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, justo ut convallis sollicitudin, magna diam tincidunt orci, ac vulputate purus turpis id est. Duis in lectus vel enim interdum lacinia. Nullam sed justo quis tortor ultrices malesuada. Sed at est sit amet odio mattis lacinia. Sed nec turpis quis purus lobortis consectetur. Sed varius, mauris vitae vulputate vehicula, est velit tincidunt eros, in porta leo felis id metus. Sed lacinia, purus id consectetur auctor, nunc magna pharetra ipsum, nec bibendum lorem turpis id diam.`,
+      languageCode: "en",
+      content: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, justo ut convallis sollicitudin, magna diam tincidunt orci, ac vulputate purus turpis id est. Duis in lectus vel enim interdum lacinia. Nullam sed justo quis tortor ultrices malesuada. Sed at est sit amet odio mattis lacinia. Sed nec turpis quis purus lobortis consectetur. Sed varius, mauris vitae vulputate vehicula, est velit tincidunt eros, in porta leo felis id metus. Sed lacinia, purus id consectetur auctor, nunc magna pharetra ipsum, nec bibendum lorem turpis id diam.`
     };
-  },
+  }
 });
-
-function formatDate(date: string) {
-  const dateObj: Date = new Date(date);
-
-  // Format the date as desired
-  const formattedDate: string = dateObj.toLocaleDateString("en-US", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-  });
-  return formattedDate;
-}
-
 </script>
 <template>
   <div class="article-card-body flex flex-col">
     <img
       class="article-card-image"
-      :src="article.imageLink"
+      :src="article.imageSource"
       alt="article-image"
     />
     <div>
       <div class="card-meta flex gap-1 font-semibold text-sm text-violet-700">
         <h3 class="card-meta-author">{{ article.category }}</h3>
         <h3 class="card-meta-separator">•</h3>
-        <h3 class="card-meta-date">{{ formatDate(article.publishedDate) }}</h3>
+        <h3 class="card-meta-date">{{ article.publishedDate }}</h3>
       </div>
       <div class="article-card-title flex justify-between">
         <h2>{{ article.title }}</h2>
