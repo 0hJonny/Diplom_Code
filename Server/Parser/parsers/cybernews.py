@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 import base64
 from bs4 import BeautifulSoup
@@ -24,6 +25,19 @@ class CyberNewsParser(BaseParser):
 
         # Get article title
         try:
+            div_date = soup.find('div', class_='article-info__date')
+            if div_date:
+                date_formats = ["Updated on: %B %d, %Y %I:%M %p", "Updated on: %B %d, %Y"]
+                for date_format in date_formats:
+                    try:
+                        article.date = datetime.strptime(div_date.text.strip(), f"{date_format}")
+                        break
+                    except ValueError:
+                        pass
+                else:
+                    logger.error(f"Can't parse date {div_date.text.strip()} from page {self.url}")
+                    article.date = None
+                article.date = article.date.strftime("%Y-%m-%dT%H:%M:%SZ%z")
             div_section_body = soup.find('div', class_='section__body')
             if div_section_body:
                 h1_element = div_section_body.find('h1', class_='heading')
@@ -60,10 +74,16 @@ class CyberNewsParser(BaseParser):
         buffer = []
 
         content = soup.find("div", class_="content")
+        if content is None:
+            content = soup.find("article > div", class_="content")
 
         upper_target_break = soup.find("a", class_="article-info__link")
 
-        under_target_div = content.find('h2', class_='content__heading')  ## Check other key class or element
+        under_target_div = content.find(id='more-from-cybernews')
+        if under_target_div is None:  # If not found above
+            under_target_div = content.find('div', class_='cybernews-responsive-2')
+
+        # under_target_div = content.find('h2', class_='content__heading')
 
         if under_target_div is not None:
             try:
@@ -74,7 +94,7 @@ class CyberNewsParser(BaseParser):
 
         else:
             try:
-                text_array_from_page = content.find_all(['a', 'p'])
+                text_array_from_page = content.find_all(['a', 'p'], recursive=True)
             except AttributeError as e:
                 logger.error(f"AttributeError: {e}\nProblem Link: {self.url}")
                 return ""
@@ -86,6 +106,9 @@ class CyberNewsParser(BaseParser):
 
         article.body = "\n".join(reversed(buffer)) if under_target_div else "\n".join(buffer)
 
+        if article.body == "":
+            logger.error(f"Empty article body: {self.url}")
+            
         return None not in article.__dict__.values()
 
     def _parse(self) -> bool:
@@ -116,16 +139,16 @@ class CyberNewsParser(BaseParser):
         for post_href in posts_hrefs:
             if self._check_article_href(post_href):
                 _same_articles += 1
-                if _same_articles >= 1300:
+                if _same_articles >= 13:
                     print("Reached maximum number of same articles.")
                     return True
                 continue
 
-            article = Article(language_code=self.language_code, post_href=post_href)
+            article = Article(language={"language_code": self.language_code}, post_href=post_href)
             if not self._get_article(article):
                 continue
 
-            logger.info(f"Current {self.url}\nTitle: {article.title}\t href: {post_href}")
+            logger.info(f"Current {self.url}\nTitle: {article.title}\t href: {post_href}\t page: {self.page_number}")
             # Send Data to the Server
             status = self._send_data_to_server(data=article.__dict__)
             if not status:
@@ -133,14 +156,14 @@ class CyberNewsParser(BaseParser):
                 return True
             
     def _pagination(self):
+        self.page_number = 0
         base_url = self.url
-        page_number = 1
         while True:
-            if page_number != 1:
-                self.url = f"{base_url}/page/{page_number}"
+            self.page_number += 1
+            if self.page_number != 1:
+                self.url = f"{base_url}/page/{self.page_number}"
             else:
                 self.url = base_url
-            page_number += 1
             if self._parse():
                 return True
 

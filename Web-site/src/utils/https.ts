@@ -5,22 +5,19 @@ import  type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } fr
 // console.log('import.meta.env: ', import.meta.env.BASE_URL);
 
 
-// 创建 axios 实例
 let service: AxiosInstance | any;
 if (import.meta.env.MODE === "development") {
   service = axios.create({
-    baseURL: "/api/v1", // api 的 base_url
-    timeout: 50000 // 请求超时时间
+    baseURL: "/api/v1", 
+    timeout: 50000 
   });
 } else {
-  // 生产环境下
   service = axios.create({
     baseURL: "/api/v1",
     timeout: 50000
   });
 }
 
-// request 拦截器 axios 的一些配置
 service.interceptors.request.use(
   (config: AxiosRequestConfig) => {
     // const token = getAuthToken();
@@ -39,7 +36,6 @@ service.interceptors.request.use(
   }
 );
 
-// respone 拦截器 axios 的一些配置
 service.interceptors.response.use(
   (res: AxiosResponse) => {
     // Some example codes here:

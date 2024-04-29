@@ -91,10 +91,10 @@ CREATE TABLE IF NOT EXISTS languages (
 
 -- Заполняем таблицу languages
 INSERT INTO languages (language_code, language_name) VALUES
-    ('ru', 'Russian'),
-    ('en', 'English'),
-    ('fr', 'French'),
-    ('de', 'German') ON CONFLICT DO NOTHING;;
+    ('ru_RU', 'Russian'),
+    ('en_US', 'English'),
+    ('fr_FR', 'French'),
+    ('de_DE', 'German') ON CONFLICT DO NOTHING;;
 
 -- Создание таблицы articles
 CREATE TABLE IF NOT EXISTS articles (
@@ -103,7 +103,8 @@ CREATE TABLE IF NOT EXISTS articles (
     source_link VARCHAR(2048) UNIQUE NOT NULL,
     body TEXT NOT NULL,
     theme_id BIGINT,
-    language_id BIGINT, -- Новое поле для хранения идентификатора языка
+    language_id BIGINT,
+    post_date TIMESTAMP NOT NULL DEFAULT now(),
     created_at TIMESTAMP DEFAULT now(),
     FOREIGN KEY (theme_id) REFERENCES themes(theme_id) ON DELETE CASCADE,
     FOREIGN KEY (language_id) REFERENCES languages(language_id) ON DELETE CASCADE

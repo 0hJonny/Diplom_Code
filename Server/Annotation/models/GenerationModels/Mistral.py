@@ -2,6 +2,7 @@
 # Check ollama/start.sh
 
 
+import re
 from .GenerationModel import GenerationModel
 from .GenerationResponse import GenerationResponse
 from models import ArticleAnnotation
@@ -21,35 +22,62 @@ class Mistral(GenerationModel):
 
     def annotate(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
-            Extract key points and sentences from the given news article, paying special attention to information that may be most significant for the reader. 
-            Highlight the main facts, events, and ideas that could be crucial for understanding the content of the article. 
-            Additionally, highlight information that may spark further interest from the reader or requires special attention. Use MarkDown Formatting.
-            Article title: %s
-            Article content: %s
+            Article title: {%s}
+            Article content: {%s}
+
+            Use my Markdown Formatting template.
+
+            Template:
+
+            ### Main Facts and Events:
+            - [List the main facts and events mentioned in the article here]
+
+            ### Key Ideas:
+            - [Summarize the key ideas or arguments presented in the article]
+
+            ### Further Interest:
+            - [Highlight any information that may spark further interest or requires special attention]
+
+            ### Important Keywords:
+            - *Keywords*: [List any important keywords mentioned in the article here]
+
+            ### Highlighted Text:
+            - [Insert any highlighted text or quotes from the article here]
             """
         prompt = prompt % (article.title, article.body)
 
         answer: GenerationResponse = self._generate_text(prompt=prompt, stream=stream, options=options)
-        article.annotation = answer.response
-        article.neural_networks["annotator"] = self.model_name
+
+        article.annotation = answer.message["content"]
+        article.add_neural_network("annotator", self.model_name)
         
         return article
 
         
     def translate(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
-            Translate article title to %s language. Safe the structure. 
-            Article title: %s
+            Title: %s
+            Translate the title to %s language. Answer must contain only the title in form of [Title: Title].
             """
-        prompt = prompt % (article.language_to_answer_name, article.title)
+        prompt = prompt % (article.title, article.language_to_answer_name)
 
         answer = self._generate_text(prompt=prompt, stream=stream, options=options)
 
-        article.title = answer.response
+        answer = answer.message["content"]
+
+        # Parse answer
+        match = re.match(r'\s*\[Title: (.*)\]\s*$', answer.strip())
+        if match:
+            article.title = match.group(1)
+        else:
+            article.title = None
 
         prompt = """
             Translate article annotation to %s language. Safe the structure. 
-            Article annotation: %s
+            Article annotation: 
+            '''
+            %s
+            '''
             """
             
         if article.annotation is None:
@@ -59,39 +87,76 @@ class Mistral(GenerationModel):
 
         answer = self._generate_text(prompt=prompt, stream=stream, options=options)
 
-        article.annotation = answer.response
+        answer = answer.message["content"]
 
-        article.neural_networks["translator"] = self.model_name
+        index = answer.find('###')
+
+        if index != -1:
+            answer = answer[index:]
+        article.annotation = answer
+
+        article.add_neural_network("translator", self.model_name)
         
         return article
         
     def categorize(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
-            Classify the article to one of the topics: "technology", "crypto", "privacy", "security". Write one word only!. Article title: %s
-            Article content: %s
+            Article:
+            '''
+            Title: %s
+            Content: %s
+            '''
+            Classify the article to one of the topics: 
+            "technology", 
+            "crypto", 
+            "privacy", 
+            "security".
+            Use template to asnwer:
+            Answer template: "Topic: topic 1"
             """
         prompt = prompt % (article.title, article.body)
         
         answer = self._generate_text(prompt=prompt, stream=stream, options=options)
 
-        article.theme_name = answer.response
-        
+        words = ["technology", "crypto", "privacy", "security"]
+
+        answer = answer.message["content"].lower()
+        print(answer)
+
+        # Check if any of the words are present in the string
+        for word in words:
+            if word in answer:
+                article.theme_name = word
+                break
+        else:
+            article.theme_name = None
+
         return article
         
     def extract_tags(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
-            Extract tags representing the main points of the article. Provide tags encapsulating core concepts, distinguishing features, or key takeaways. 
-            Tags should be concise, reflecting one or two words of the main points of the article. Answer in format: [#tag1, #tag2,... #tags] like array of tags.
-            The tag is only one word.
-            Example: Tags must has one or two words of main points of the Article. Write tags in camel style.
-            Article title: %s
-            Article content: %s
+            Article:
+            '''
+            Title: %s
+            Content: %s
+            '''
+            What is tags of the Article? Tag is representing the main points of the article. 
+            Tags should be concise, reflecting one or two words of the main points of the article.
+            Answer in format: [tag1, tag2,... tags] like array of tags. 
+            Example: Tags must has one or two words of main points of the Article.
             """
         prompt = prompt % (article.title, article.body)
     
         answer: GenerationResponse = self._generate_text(prompt=prompt, stream=stream, options=options)
 
-        tags_line = answer.response.strip().lstrip('[').rstrip(']').split(',')
-        [article.add_tag(tag.replace("#", '').replace(' ', '')) for tag in tags_line]
+        # Remove the square brackets from the string
+        tags = answer.message["content"].strip("[]")
+
+
+        # Split the string by comma to get individual tags
+        tags_list = tags.split(",")
+
+        # Remove leading and trailing whitespace from each tag
+        [article.add_tag(tag.strip()) for tag in tags_list]
 
         return article

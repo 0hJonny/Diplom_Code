@@ -43,7 +43,7 @@ class OpenChat(GenerationModel):
 
         answer: GenerationResponse = self._generate_text(prompt=prompt, stream=stream, options=options)
         
-        answer = answer.response
+        answer = answer.message["content"]
 
         index = answer.find('###')
 
@@ -51,7 +51,6 @@ class OpenChat(GenerationModel):
             answer = answer[index:]
         article.annotation = answer
         
-        article.annotation = answer
         article.neural_networks["annotator"] = self.model_name
         
         return article
@@ -66,7 +65,7 @@ class OpenChat(GenerationModel):
 
         answer = self._generate_text(prompt=prompt, stream=stream, options=options)
 
-        article.title = answer.response
+        article.title = answer.message["content"]
 
         prompt = """
             Translate article annotation to %s language. Safe the structure. 
@@ -83,7 +82,7 @@ class OpenChat(GenerationModel):
 
         answer = self._generate_text(prompt=prompt, stream=stream, options=options)
 
-        article.annotation = answer.response
+        article.annotation = answer.message["content"]
 
         article.neural_networks["translator"] = self.model_name
         
@@ -107,7 +106,7 @@ class OpenChat(GenerationModel):
         
         answer = self._generate_text(prompt=prompt, stream=stream, options=options)
         
-        article.theme_name = answer.response.lower().replace('*', '').replace(' ', '').replace('\n', '')
+        article.theme_name = answer.message["content"].lower().replace('*', '').replace(' ', '').replace('\n', '')
 
         ## TODO CHECK FOR THEMES CLASSIFY
         
@@ -129,7 +128,7 @@ class OpenChat(GenerationModel):
     
         answer: GenerationResponse = self._generate_text(prompt=prompt, stream=stream, options=options)
 
-        tag_list = answer.response.replace("[", "").replace("]", "").replace("'", "").replace(' ', '').split(',')
+        tag_list = answer.message["content"].replace("[", "").replace("]", "").replace("'", "").replace(' ', '').split(',')
         [article.add_tag(tag.capitalize()) for tag in tag_list]
 
         return article

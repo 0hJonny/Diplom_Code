@@ -36,11 +36,18 @@ class ArticleAnnotation:
 
     def add_tag(self, tag: str):
         """Add a tag to the article."""
-        if len(tag) <= 20 and tag not in self.tags:
+        if len(tag) <= 20 and not self.tags:
+            if self.tags is None:
+                self.tags = []
+            self.tags.append(tag)
+            
+        elif len(tag) <= 20 and tag not in self.tags:
             self.tags.append(tag)
 
     def add_neural_network(self, key: str, value: str):
         """Add a neural network to the article."""
+        if self.neural_networks is None:
+            self.neural_networks = {}
         self.neural_networks[key] = value
 
     @classmethod

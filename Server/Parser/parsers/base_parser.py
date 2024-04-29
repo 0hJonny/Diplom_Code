@@ -32,28 +32,27 @@ parsed_content = base_parser.parse()
 class BaseParser:
     def __init__(self, url: str):
         self.url:str = url
-        self.scraper:cloudscraper = cloudscraper.create_scraper(delay=6, browser={"browser": "chrome", "device": "ipad"})
+        self.platforms = ['linux', 'windows', 'darwin', 'android', 'ios']
+        self.browsers = ['chrome', 'firefox']
+        if "ios" in self.platforms:
+            self.browsers = ['chrome']
+        self.scraper:cloudscraper = cloudscraper.create_scraper(delay=6, browser={"browser": random.choice(self.browsers), "device": random.choice(self.platforms)})
         self.api_access_token:str = ""
         self.api_user_login:str = os.getenv("API_USER_LOGIN")
         self.api_user_password:str = os.getenv("API_USER_PASSWORD")
-        self.api_base_url:str = os.getenv("FLASK_API")
-        # self._registration()
+        self.api_base_url:str = os.getenv("GOLANG_API")
         self._login()
-
-    # Регистрация пользователя
-    def _registration(self):
-        register_url = f"{self.api_base_url}/register"
-        register_data = {"username": self.api_user_login, "password":  self.api_user_password}
-        register_response = requests.post(register_url, json=register_data)
-        print("Registration response:", register_response.text)
-
 
     # Авторизация пользователя и получение токена
     def _login(self):
-        login_url = f"{self.api_base_url}/login"
-        login_data = {"username": self.api_user_login, "password":  self.api_user_password}
-        login_response = requests.get(login_url, json=login_data)
-        self.api_access_token = login_response.json().get("access_token")
+        login_url = f"{self.api_base_url}/auth/login"
+        login_data = {
+            "username": self.api_user_login,
+            "password": self.api_user_password
+        }
+        login_response = requests.post(login_url, json=login_data)
+        data = login_response.json().get("data")
+        self.api_access_token = data.get("jwt_token")
 
     def _fetch_html(self) -> bytes:
         max_attempts = 3
@@ -93,16 +92,16 @@ class BaseParser:
     def _check_article_href(self, href: str) -> bool:
         try:
             headers = {"Authorization": f"Bearer {self.api_access_token}"}
-            response = requests.get(f"{self.api_base_url}/articles/check", json={"article_href": href}, headers=headers, timeout=5)
+            response = requests.get(f"{self.api_base_url}/p/article/check", json={"article_href": href}, headers=headers, timeout=5)
             response.raise_for_status()
-            return response.json().get("article_exists")
+            return response.json().get("data").get("exists")
         except requests.exceptions.RequestException as e:
             return self._handle_request_exceptions(e)
 
     def _send_data_to_server(self, data) -> bool:
         try:
             headers = {"Authorization": f"Bearer {self.api_access_token}"}
-            response = requests.post(f"{self.api_base_url}/articles", json=data, headers=headers, timeout=5)
+            response = requests.post(f"{self.api_base_url}/p/article", json=data, headers=headers, timeout=5)
             response.raise_for_status()
             return True
         except requests.exceptions.RequestException as e:

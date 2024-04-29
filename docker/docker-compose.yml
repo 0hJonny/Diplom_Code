@@ -64,6 +64,7 @@ services:
       - /opt/exchange:/opt/exchange
     networks:
       - app_network
+    restart: always
 
 # Python Server
   # Parser
@@ -73,14 +74,14 @@ services:
       context: ../Server/Parser
       dockerfile: Dockerfile
     environment:
-      FLASK_API: http://python-flask-server:5000/api/v1
+      GOLANG_API: http://golang-server:5000/api/v1
       API_USER_LOGIN: ${ADMIN_USERNAME}
       API_USER_PASSWORD: ${ADMIN_PASSWORD}
     volumes:
       - ../Server/Parser:/app
     restart: always
     depends_on:
-      - python-flask-server
+      - golang-server
     networks:
       - app_network
   
@@ -91,7 +92,7 @@ services:
       context: ../Server/Annotation
       dockerfile: Dockerfile
     environment:
-      FLASK_API: http://python-flask-server:5000/api/v1
+      GOLANG_API: http://golang-server:5000/api/v1
       API_OLLAMA_URL: http://ollama-hub:11434
       API_USER_LOGIN: ${ADMIN_USERNAME}
       API_USER_PASSWORD: ${ADMIN_PASSWORD}
@@ -99,7 +100,7 @@ services:
       - ../Server/Annotation:/app
     restart: always
     depends_on:
-      - python-flask-server
+      - golang-server
     networks:
       - app_network
       - ollama_network
@@ -117,42 +118,45 @@ services:
       - ollama_data:/root/.ollama
     restart: always
     depends_on:
-      - python-flask-server
+      - golang-server
       - python-annotator
     networks:
       - ollama_network
 
-  # Flask Server
-  python-flask-server:
+  # Go Server
+  golang-server:
     build:
-      context: ../Server/BackFlask
+      context: ../Server/Backend
       dockerfile: Dockerfile
-    container_name: python-flask
+    container_name: golang-server
     environment:
       POSTGRES_DATABASE_URL: postgres
       POSTGRES_USERNAME: ${DATASOURCE_USER}
       POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD}
       POSTGRES_ARTICLES: ${DATASOURCE_DB_ARTICLES}
       POSTGRES_USERS: ${DATASOURCE_DB_USERS}
+      POSTGRES_PORT: '5432'
       MINIO_USER: ${MINIO_USER}
       MINIO_PASSWORD: ${MINIO_PASSWORD}
       MINIO_HOST: minio
       MINIO_PORT: ${MINIO_API_PORT}
     ports:
-      - '5000:5000'
+      - '5001:5000'
     volumes:
-      - ../Server/BackFlask:/app
+      - ../Server/Backend:/app/data
     restart: always
     depends_on:
       - postgres
+      - minio
     networks:
       - db_network
       - app_network
+
 # Init Web
   vue-app:
     container_name: vue-app
     environment:
-      FLASK_API: python-flask-server:5000
+      GOLANG_API: golang-server:5000
     build:
       context: ../Web-site
       dockerfile: Dockerfile
@@ -162,7 +166,7 @@ services:
       - ../Web-site:/app
     restart: always
     depends_on:
-      - python-flask-server
+      - golang-server
     networks:
       - app_network
   # vue-app:

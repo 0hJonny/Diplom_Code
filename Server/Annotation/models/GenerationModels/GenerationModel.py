@@ -42,12 +42,14 @@ class GenerationModel:
 
         data = {
             "model": self.model_name,
-            "prompt": prompt,
+            "messages": [
+                { "role": "user", "content": prompt }
+            ],
             "stream": stream,
             "options": options
         }
         try:
-            response = requests.post(f"{self.api_url}/api/generate", json=data)
+            response = requests.post(f"{self.api_url}/api/chat", json=data)
             if response.status_code == 200:
                 return GenerationResponse.from_json(response.json())
             else:

@@ -16,8 +16,7 @@ export default defineConfig({
 
     proxy: {
       "/api/v1": {
-        target: `http://${process.env.FLASK_API || "127.0.0.1:5000"}`,
-        // target: `http://python-flask-server:5000/api/v1`,
+        target: `http://${process.env.GOLANG_API || "127.0.0.1:5000"}`,
         changeOrigin: true,
         secure: false,      
         ws: true,

@@ -1,0 +1,29 @@
+# Ignore .vscode and .idea folders
+.vscode/
+.idea/
+
+# Ignore air.toml file
+.air.toml
+
+# Ignore tmp folder
+tmp/
+
+# Ignore log files
+*.log
+
+# Ignore editor backup files
+*.swp
+*.swo
+
+# Ignore local dependencies
+/node_modules/
+/vendor/
+
+# Ignore build artifacts
+/build/
+/dist/
+
+# Ignore cache and temp files
+/tmp/
+/temp/
+

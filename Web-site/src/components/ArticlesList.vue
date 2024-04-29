@@ -14,7 +14,7 @@ const router = useRouter();
 const pagesData = reactive({
   currentPage: Number(router.currentRoute.value.query.page) || 1,
   elementsPerPage: 12,
-  totalItems: 400
+  totalItems: 12
 });
 
 const lang = ref(document.documentElement.getAttribute("lang") || "en");
@@ -44,11 +44,11 @@ onMounted(() => {
 });
 
 async function get_articles_count() {
-  const data: any = await service.get(
-    `${urls.articles_count}?language_code=${document.documentElement.getAttribute("lang") || "en"}`
+  const { data }: any = await service.get(
+    `${urls.articles_count}?language_code=${languageLocales[document.documentElement.getAttribute("lang") || "en"]}`
   );
   pagesData.totalItems = data["count"];
-  console.log("pagesData.totalItems: ", pagesData.totalItems);
+  // console.log("pagesData.totalItems: ", pagesData.totalItems);
 }
 
 function formatDate(date: string) {
@@ -71,11 +71,14 @@ function mapToArticle(data: any): Article {
   return {
     id: data.id || "",
     title: data.title.replace(/^"|"(?=\s|$)/g, "") || "",
-    publishedDate: formatDate(data.timestamp) || "",
+    publishedDate: formatDate(data.publishedDate) || "",
     category: (data.category || "").toUpperCase() || "", // Add a fallback value in case data.category is null or undefined
-    tags: (data.tags || []).map((tag: string) =>
-      tag.replace(/^"|"(?=\s|$)/g, "")
-    ),
+    tags: (data.tags || "[]") // Parse the string to an array
+      .replace(/^\[|\]$/g, "") // Remove the surrounding square brackets
+      .split(", ") // Split the string by comma and space
+      .map((tag: string) =>
+        tag.replace(/^"|"$/g, "").trim().replace(/\\|"/g, "")
+      ), // Parse each tag and remove the surrounding quotes, and remove backslashes and quotes from the tag value
     content: data.content || "",
     languageCode: data.language_code || "",
     imageSource: `http://${import.meta.env.MINIO_URL ? import.meta.env.MINIO_URL : "localhost:9000"}${data.image_source}`
@@ -85,16 +88,14 @@ function mapToArticle(data: any): Article {
 async function loadArticles() {
   try {
     // Получаем данные от сервиса
-    const rawData: any[] = await service.get(
-      `${urls.articles}?page=${pagesData.currentPage}&limit=${pagesData.elementsPerPage}&language_code=${document.documentElement.getAttribute("lang") || "en"}`
+    const { data: rawData } = await service.get(
+      `${urls.articles}?page=${pagesData.currentPage}&limit=${pagesData.elementsPerPage}&language_code=${languageLocales[document.documentElement.getAttribute("lang") || "en"]}`
     );
 
     // Преобразуем данные в объекты типа Article
     const parsedData: Article[] = rawData.map((article: any) =>
       mapToArticle(article)
     );
-
-    console.log("parsedData: ", parsedData);
 
     // Обновляем значение реактивной переменной articles
     articles.value = parsedData;
@@ -130,7 +131,7 @@ watch(
     if (newValue !== oldValue) {
       // Обновляем currentPage в соответствии со значением из маршрута
       pagesData.currentPage = Number(newValue) || 1;
-      console.log("currentPage: ", pagesData.currentPage);
+      // console.log("currentPage: ", pagesData.currentPage);
     }
   }
 );

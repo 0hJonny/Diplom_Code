@@ -15,7 +15,7 @@ class Client:
         if not self.article.check_article_annotation():
             return False 
 
-        if ServerInterface.send_annotation(self.article.id, self.article, self.user.get_token()) == 201:
+        if ServerInterface.send_annotation(self.article, self.user.get_token()) == 201:
             return True
         else:
             raise "Server error!"

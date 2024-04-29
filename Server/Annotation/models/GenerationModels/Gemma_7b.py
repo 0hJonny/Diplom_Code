@@ -2,15 +2,15 @@ from .GenerationModel import GenerationModel
 from .GenerationResponse import GenerationResponse
 from models import ArticleAnnotation
 
-class Gemma_2b(GenerationModel):
+class Gemma_7b(GenerationModel):
     def __init__(self):
         super().__init__()
-        self.model_name = "gemma:2b"
+        self.model_name = "gemma"
         self.data = {
             "stream": False,  # Placeholder for stream option
             "options": {
                 "temperature": 0.7,  # Placeholder for temperature option
-                "repeat_penalty": 1.0  # Placeholder for repeat_penalty option
+                "top_p": 0.9
             }
         }
     
@@ -149,4 +149,3 @@ class Gemma_2b(GenerationModel):
         [article.add_tag(tag) for tag in tags_list]
 
         return article
-
