@@ -91,10 +91,10 @@ CREATE TABLE IF NOT EXISTS languages (
 
 -- Заполняем таблицу languages
 INSERT INTO languages (language_code, language_name) VALUES
-    ('ru_RU', 'Russian'),
-    ('en_US', 'English'),
-    ('fr_FR', 'French'),
-    ('de_DE', 'German') ON CONFLICT DO NOTHING;;
+    ('ru-RU', 'Russian'),
+    ('en-US', 'English'),
+    ('fr-FR', 'French'),
+    ('de-DE', 'German') ON CONFLICT DO NOTHING;;
 
 -- Создание таблицы articles
 CREATE TABLE IF NOT EXISTS articles (

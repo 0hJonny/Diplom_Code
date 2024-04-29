@@ -35,7 +35,7 @@ func OpenDtabaseConnection() {
 		log.Fatal(err)
 	}
 
-	log.Println("Database connection established")
+	log.Println("✨✨✨ Database connection established! ✨✨✨")
 }
 
 func CloseDatabaseConnection() {
