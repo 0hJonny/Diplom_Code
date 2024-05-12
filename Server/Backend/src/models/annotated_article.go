@@ -19,9 +19,13 @@ type ArticleAnnotation struct {
 	Tags                 []string          `gorm:"-" json:"tags"`
 	Annotation           string            `json:"annotation"`
 	NeuralNetworks       map[string]string `gorm:"-" json:"neural_networks"`
+	HasAnnotation  bool   `gorm:"column:has_annotation" json:"has_annotation"`
 	CreatedAt            time.Time         `json:"created_at" gorm:"autoCreateTime"`
 }
 
 type ArticleQueryID struct {
-	ID string `gorm:"column:id;primaryKey" json:"id"`
+	ArticleID      string `gorm:"column:article_id;primaryKey" json:"article_id"`
+	NativeLanguage string `gorm:"column:native_language" json:"native_language"`
+	LanguageCode   string `gorm:"column:language_code" json:"language_code"`
+	LanguageName   string `gorm:"column:language_name" json:"language_name"`
 }

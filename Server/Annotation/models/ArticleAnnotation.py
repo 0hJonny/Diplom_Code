@@ -12,26 +12,30 @@ class ArticleAnnotation:
     tags: list[str] = field(default_factory=list)
     annotation: str = None
     neural_networks: dict[str, str] = field(default_factory=dict)
+    has_annotation: bool = False
+    title_orig: str = None
 
-    def check_article_annotation(self):
+    def check_article_annotation_error(self):
         """Check if the article annotation is valid."""
+        if self.title == self.title_orig and self.language_to_answer_code != self.language_code or self.title == "":
+            return "Title is None"
         if self.body is None:
-            return False
+            return "Body is None"
         if self.language_code is None:
-            return False
+            return "Language code is None"
         if self.language_to_answer_code is None:
-            return False
+            return "Language to answer code is None"
         if self.language_to_answer_name is None:
-            return False
-        if self.theme_name is None:
-            return False
-        if self.tags is None:
-            return False
+            return "Language to answer name is None"
+        if self.theme_name is None and not self.has_annotation:
+            return "Theme name is None"
+        if (self.tags is None or self.tags == ['']) and not self.has_annotation:
+            return "Tags is None"
         if self.annotation is None:
-            return False
+            return "Annotation is None"
         if self.neural_networks is None:
-            return False
-        return True
+            return "Neural networks is None"
+        return None
 
 
     def add_tag(self, tag: str):
@@ -62,5 +66,6 @@ class ArticleAnnotation:
             theme_name=json_data.get("theme_name"),
             tags=json_data.get("tags", []),
             annotation=json_data.get("annotation"),
-            neural_networks=json_data.get("neural_networks", {})
+            neural_networks=json_data.get("neural_networks", {}),
+            has_annotation=json_data.get("has_annotation", False)
         )

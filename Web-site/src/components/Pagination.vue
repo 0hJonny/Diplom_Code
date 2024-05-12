@@ -12,7 +12,7 @@ const props = defineProps<{
 const pagesData = reactive({
   currentPage: props.currentPage,
   // currentPage: Number(router.currentRoute.value.query.page) || 1,
-  totalPages: 0,
+  totalPages: 0
 });
 
 /**
@@ -25,7 +25,10 @@ const visiblePages = computed(() => {
 
   pagesData.totalPages = Math.ceil(props.totalItems / props.elementsPerPage);
 
-  if (pagesData.currentPage > pagesData.totalPages) {
+  if (
+    pagesData.currentPage > pagesData.totalPages &&
+    pagesData.totalPages != 0
+  ) {
     pagesData.currentPage = pagesData.totalPages;
     router.push(
       `${router.currentRoute.value.path}?page=${pagesData.currentPage}`
@@ -50,7 +53,7 @@ const visiblePages = computed(() => {
         pagesData.totalPages - 3,
         pagesData.totalPages - 2,
         pagesData.totalPages - 1,
-        pagesData.totalPages,
+        pagesData.totalPages
       ];
     } else {
       pagesPool = [
@@ -60,7 +63,7 @@ const visiblePages = computed(() => {
         pagesData.currentPage,
         pagesData.currentPage + 1,
         "...",
-        pagesData.totalPages,
+        pagesData.totalPages
       ];
     }
   }
@@ -105,19 +108,19 @@ const changePage = (page: number) => {
           class="isolate inline-flex -space-x-px rounded-md"
           aria-label="Pagination"
         >
-        <div class="flex items-center gap-2">
-          <button
-            v-for="(page, index) in visiblePages"
-            :key="index"
-            href="#"
-            class="pagination-button"
-            :class="{ active: page === pagesData.currentPage }"
-            :disabled="page === '...' || page === pagesData.currentPage"
-            @click="changePage(page)"
-          >
-            {{ page }}
-          </button>
-        </div>
+          <div class="flex items-center gap-2">
+            <button
+              v-for="(page, index) in visiblePages"
+              :key="index"
+              href="#"
+              class="pagination-button"
+              :class="{ active: page === pagesData.currentPage }"
+              :disabled="page === '...' || page === pagesData.currentPage"
+              @click="changePage(page)"
+            >
+              {{ page }}
+            </button>
+          </div>
         </nav>
       </div>
       <div

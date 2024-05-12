@@ -40,19 +40,19 @@ func GetArticleWebCount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Articles fetched successfully", "data": count})
 }
 
-func CreateArticleAnnotation(c *gin.Context) {
+func GetArticleDetails(c *gin.Context) {
 	var err error
-	var articleData models.ArticleAnnotation
-	err = c.ShouldBindJSON(&articleData)
+	var article models.ArticleWebQuery
+	err = c.ShouldBindQuery(&article)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": "Invalid request payload", "data": nil})
 		return
 	}
+	articleDetails, err := utils.GetArticleDetailsWeb(&article)
 
-	articleData, err = utils.CreateArticleAnnotationDB(&articleData)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": err, "data": nil})
+		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": "Unable to get articles", "data": nil})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"status": "success", "message": "Article created successfully", "data": articleData})
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Articles fetched successfully", "data": articleDetails})
 }

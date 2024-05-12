@@ -4,7 +4,7 @@ import Home from "./views/Home.vue";
 import Footer from "./components/Footer.vue";
 
 import { ref, onMounted } from "vue";
-import { supportedLanguages } from "@/utils/supportedLanguages.ts";
+import { supportedLanguages } from "@/utils/supportedLanguages.js";
 
 const defaultLanguage = ref<string>(navigator.language.split("-")[0] || "en"); // Default language
 

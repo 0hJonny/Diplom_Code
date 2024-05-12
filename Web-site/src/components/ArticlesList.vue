@@ -7,14 +7,14 @@ import service from "@/utils/https";
 import { languageLocales } from "@/utils/languageLocales";
 import ArticleVue from "./Article.vue";
 import PaginationVue from "./Pagination.vue";
-import type { Article } from "../models/index";
+import { mapToArticle, type Article } from "../models/index";
 
 const router = useRouter();
 
 const pagesData = reactive({
   currentPage: Number(router.currentRoute.value.query.page) || 1,
-  elementsPerPage: 12,
-  totalItems: 12
+  elementsPerPage: 16,
+  totalItems: 0
 });
 
 const lang = ref(document.documentElement.getAttribute("lang") || "en");
@@ -49,40 +49,6 @@ async function get_articles_count() {
   );
   pagesData.totalItems = data["count"];
   // console.log("pagesData.totalItems: ", pagesData.totalItems);
-}
-
-function formatDate(date: string) {
-  const dateObj: Date = new Date(date);
-
-  // Format the date as desired
-  const formattedDate: string = dateObj.toLocaleDateString(
-    languageLocales[document.documentElement.getAttribute("lang") || "en"],
-    {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }
-  );
-  return formattedDate;
-}
-
-function mapToArticle(data: any): Article {
-  return {
-    id: data.id || "",
-    title: data.title.replace(/^"|"(?=\s|$)/g, "") || "",
-    publishedDate: formatDate(data.publishedDate) || "",
-    category: (data.category || "").toUpperCase() || "", // Add a fallback value in case data.category is null or undefined
-    tags: (data.tags || "[]") // Parse the string to an array
-      .replace(/^\[|\]$/g, "") // Remove the surrounding square brackets
-      .split(", ") // Split the string by comma and space
-      .map((tag: string) =>
-        tag.replace(/^"|"$/g, "").trim().replace(/\\|"/g, "")
-      ), // Parse each tag and remove the surrounding quotes, and remove backslashes and quotes from the tag value
-    content: data.content || "",
-    languageCode: data.language_code || "",
-    imageSource: `http://${import.meta.env.MINIO_URL ? import.meta.env.MINIO_URL : "localhost:9000"}${data.image_source}`
-  };
 }
 
 async function loadArticles() {

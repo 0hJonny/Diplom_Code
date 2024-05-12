@@ -46,7 +46,7 @@ func GetArticleWeb(articleWebQuery *models.ArticleWebQuery) (*[]models.ArticleWe
 
 	query += `
 		GROUP BY articles.id, titles.title, themes.theme_name, annotations.annotation
-		ORDER BY articles.created_at DESC
+		ORDER BY articles.post_date DESC
 		LIMIT ? OFFSET ?;`
 
 	args = append(args, articleWebQuery.Limit, articleWebQuery.Offset)

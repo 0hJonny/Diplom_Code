@@ -15,7 +15,7 @@ class Mistral(GenerationModel):
             "stream": False,  # Placeholder for stream option
             "options": {
                 "temperature": 0.1,  # Placeholder for temperature option
-                "repeat_penalty": 1.05  # Placeholder for repeat_penalty option
+                # "repeat_penalty": 1.05  # Placeholder for repeat_penalty option
             }
         }
     
@@ -56,8 +56,13 @@ class Mistral(GenerationModel):
         
     def translate(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
-            Title: %s
-            Translate the title to %s language. Answer must contain only the title in form of [Title: Title].
+            Translate my text: "%s", to %s language. Safe the structure.
+            Use template to asnwer.
+            Answer template:
+            ```
+            Translated text:
+            [Title: traslate here]
+            ```
             """
         prompt = prompt % (article.title, article.language_to_answer_name)
 
@@ -65,12 +70,16 @@ class Mistral(GenerationModel):
 
         answer = answer.message["content"]
 
+        print("'%s'" % answer)
         # Parse answer
-        match = re.match(r'\s*\[Title: (.*)\]\s*$', answer.strip())
-        if match:
-            article.title = match.group(1)
-        else:
-            article.title = None
+        title_regex = r"\[?Title: (.+?)(?:\]|$)"
+        result = re.search(title_regex, answer, re.MULTILINE)
+        print(result)
+        if result:
+            article.title = result.group(1).strip().replace('"', '')
+
+        print(article.title)
+
 
         prompt = """
             Translate article annotation to %s language. Safe the structure. 
@@ -148,7 +157,8 @@ class Mistral(GenerationModel):
         prompt = prompt % (article.title, article.body)
     
         answer: GenerationResponse = self._generate_text(prompt=prompt, stream=stream, options=options)
-
+        print(answer.strip())
+        
         # Remove the square brackets from the string
         tags = answer.message["content"].strip("[]")
 
@@ -157,6 +167,6 @@ class Mistral(GenerationModel):
         tags_list = tags.split(",")
 
         # Remove leading and trailing whitespace from each tag
-        [article.add_tag(tag.strip()) for tag in tags_list]
+        [article.add_tag(tag.strip().capitalize()) for tag in tags_list]
 
         return article

@@ -7,21 +7,23 @@ import (
 func GetAnnotationQueue() (*[]models.ArticleQueryID, error) {
 	var articleQueue []models.ArticleQueryID
 
-	query := `SELECT articles.id
-	FROM articles
-	LEFT JOIN (
-		SELECT DISTINCT article_id
-		FROM annotations
-	) AS annotated_articles ON articles.id = annotated_articles.article_id
-	WHERE articles.language_id IS NOT NULL
-	AND articles.id NOT IN (
-		SELECT article_id
-		FROM annotations
-		GROUP BY article_id
-		HAVING COUNT(DISTINCT language_id) = (
-			SELECT COUNT(*) FROM languages
-		)
-	);`
+	query := `
+	SELECT 
+		a.id AS article_id, 
+		ln.language_code AS native_language,
+		l.language_code,
+		l.language_name
+	FROM 
+		articles a
+	CROSS JOIN 
+		languages l
+	LEFT JOIN 
+		languages ln ON a.language_id = ln.language_id
+	LEFT JOIN 
+		annotations an ON a.id = an.article_id AND l.language_id = an.language_id
+	WHERE 
+		an.article_id IS NULL
+	ORDER BY a.post_date DESC;`
 
 	err := models.DatabaseArticles.Raw(query).Scan(&articleQueue).Error
 

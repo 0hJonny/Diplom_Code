@@ -134,9 +134,10 @@ class Gemma_7b(GenerationModel):
             Example: Tags must has one or two words of main points of the Article.
             """
         prompt = prompt % (article.title, article.body)
+        # print(prompt)
     
         answer: GenerationResponse = self._generate_text(prompt=prompt, stream=stream, options=options)
-
+        print(answer)
 
         # Remove the square brackets from the string
         tags = answer.message["content"].strip("[]")

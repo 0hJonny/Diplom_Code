@@ -36,3 +36,20 @@ func GetArticleByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Article fetched successfully", "data": articleData})
 }
+
+func CreateArticleAnnotation(c *gin.Context) {
+	var err error
+	var articleData models.ArticleAnnotation
+	err = c.ShouldBindJSON(&articleData)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": "Invalid request payload", "data": nil})
+		return
+	}
+
+	articleData, err = utils.CreateArticleAnnotationDB(&articleData)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": err, "data": nil})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"status": "success", "message": "Article created successfully", "data": articleData})
+}

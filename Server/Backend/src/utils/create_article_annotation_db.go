@@ -38,18 +38,20 @@ func CreateArticleAnnotationDB(articleData *models.ArticleAnnotation) (models.Ar
 		}
 	}
 
-	query = `SELECT theme_id FROM themes WHERE theme_name = ?`
-	err = tx.Raw(query, articleData.ThemeName).Scan(&articleData).Error
-	if err != nil || articleData.ThemeID == 0 {
-		tx.Rollback()
-		return models.ArticleAnnotation{}, err
-	}
-
-	query = `UPDATE articles SET theme_id = ? WHERE id = ?`
-	err = tx.Exec(query, articleData.ThemeID, articleData.ID).Error
-	if err != nil {
-		tx.Rollback()
-		return models.ArticleAnnotation{}, err
+	if articleData.ThemeName != "" {
+		query = `SELECT theme_id FROM themes WHERE theme_name = ?`
+		err = tx.Raw(query, articleData.ThemeName).Scan(&articleData).Error
+		if err != nil || articleData.ThemeID == 0 {
+			tx.Rollback()
+			return models.ArticleAnnotation{}, err
+		}
+	
+		query = `UPDATE articles SET theme_id = ? WHERE id = ?`
+		err = tx.Exec(query, articleData.ThemeID, articleData.ID).Error
+		if err != nil {
+			tx.Rollback()
+			return models.ArticleAnnotation{}, err
+		}
 	}
 
 	query = `
@@ -62,7 +64,9 @@ func CreateArticleAnnotationDB(articleData *models.ArticleAnnotation) (models.Ar
 		return models.ArticleAnnotation{}, err
 	}
 
-	err = insertArticleWithTags(articleData.ID, articleData.Tags, tx)
+	if len(articleData.Tags) != 0 {
+		err = insertArticleWithTags(articleData.ID, articleData.Tags, tx)
+	}
 
 	if err != nil {
 		tx.Rollback()

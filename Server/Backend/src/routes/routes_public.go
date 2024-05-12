@@ -10,4 +10,5 @@ func GroupRouterPublic(baseRouter *gin.RouterGroup) {
 	public := baseRouter.Group("/g")
 	public.GET("/articles", controllers.GetAnnotation)
 	public.GET("/articles/count", controllers.GetArticleWebCount)
+	public.GET("/article/detailed", controllers.GetArticleDetails)
 }
