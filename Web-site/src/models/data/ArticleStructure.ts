@@ -24,7 +24,7 @@ export function mapToArticle(data: any): Article {
   return {
     id: data.id || "",
     title: data.title.replace(/^"|"(?=\s|$)/g, "") || "",
-    publishedDate: formatDate(data.publishedDate) || "",
+    publishedDate: formatDate(data.publishedDate).toUpperCase() || "",
     category: (data.category || "").toUpperCase() || "", // Add a fallback value in case data.category is null or undefined
     tags: (data.tags || "[]") // Parse the string to an array
           .replace(/^\[|\]$/g, "") // Remove the surrounding square brackets

@@ -1,6 +1,9 @@
 package utils
 
-import "go-gin-postgresql-backend/src/models"
+import (
+	"fmt"
+	"go-gin-postgresql-backend/src/models"
+)
 
 func GetArticleDetailsWeb(article *models.ArticleWebQuery) (*models.ArticleWeb, error) {
 	var articleData models.ArticleWeb
@@ -44,6 +47,8 @@ func GetArticleDetailsWeb(article *models.ArticleWebQuery) (*models.ArticleWeb, 
 	if err := models.DatabaseArticles.Raw(query, article.LanguageCode, article.ArticleID).Scan(&articleData).Error; err != nil {
 		return &models.ArticleWeb{}, err
 	}
+
+	articleData.ImageSource = fmt.Sprintf("/images/%s.png", articleData.ID)
 
 	return &articleData, nil
 }

@@ -318,8 +318,7 @@ export default {
   left: 0;
   bottom: 0;
   margin: auto;
-  width: 90%; /* Шира меню */
-  max-width: calc(100vw / 4); /* Адаптивная ширина меню 1/5 экрана */
+  max-width: min(30%, 100vw);
   background-color: var(--color-black); /* Белый фон меню */
   /* padding: var(--space-m); */
   color: var(--color-white); /* Белый текст */
@@ -332,6 +331,12 @@ export default {
   cursor: default;
   scroll-behavior: smooth;
   scrollbar-width: none;
+  padding-right: var(--space-m);
+  padding-left: 112px;
+}
+
+.menu__wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 @media (max-width: 1079px) {
@@ -445,7 +450,7 @@ export default {
 
 .menu__submenu {
   display: none;
-  padding-left: var(--space-m); /* Отступ слева для вложенных пунктов меню */
+  padding-left: var(--space-m);
 }
 
 .menu__item-has-children input[type="checkbox"]:checked ~ .menu__submenu {

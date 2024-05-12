@@ -26,6 +26,10 @@ const props = withDefaults(defineProps<{ article: Article }>(), {
         "Algorithms",
         "Discrimination"
       ],
+      neuralNetworks: {
+        translator: "",
+        annotator: ""
+      },
       content: `### Главные факты и события:
 
 - Демократические политики требуют от правительства США прекратить финансирование систем предсказательной полиции из-за их предполагаемой склонности к предрассудкам и дискриминации.

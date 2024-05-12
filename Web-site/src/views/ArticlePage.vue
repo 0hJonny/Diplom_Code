@@ -1,53 +1,62 @@
 <script setup lang="ts">
 import { marked } from "marked"; //marked from "marked";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 
 import Header from "../components/Header.vue";
 import ArticlesList from "../components/ArticlesList.vue";
 import TitleHeader from "../components/TitleHeader.vue";
+import urls from "@/utils/urls";
+import { useRoute, useRouter } from "vue-router";
+import { languageLocales } from "@/utils/languageLocales";
+import { mapToArticle, type Article } from "@/models";
+import service from "@/utils/https";
 
-const markdown = ref(`### Главные факты и события:
+const router = useRouter();
+const route = useRoute();
 
-- Демократические политики требуют от правительства США прекратить финансирование систем предсказательной полиции из-за их предполагаемой склонности к предрассудкам и дискриминации.
+const article = ref<Article>();
 
-- Эти системы были показаны преувеличивать преступность в чёрных и латинских районах на основании фальсифицированных алгоритмами.
+const markdownToHtml = computed(() =>
+  marked.parse(article.value?.content || "")
+);
 
-- Системы часто питаются предрассудками, что приводит к дискриминаторным прогнозам.
+async function loadArticle() {
+  try {
+    // Получаем данные от сервиса
+    const { data: rawData } = await service.get(
+      `${urls.articles_detail}?article_id=${route.params.id}&language_code=${languageLocales[document.documentElement.getAttribute("lang") || "en"]}`
+    );
 
-- Департамент юстиции финансировал гранты на системы предсказательной полиции с 2009 года.
+    // Преобразуем данные в объекты типа Article
+    article.value = mapToArticle(rawData);
+    console.log("article.value: ", article.value);
 
-- ЕС недавно запретило использование систем предсказательной полиции.
+    // Обновляем значение реактивной переменной articles
 
-### Ключевые идеи:
+    // Выводим полученные статьи
+  } catch (error) {
+    // Обрабатываем ошибку, если она возникла
+    if (error) {
+      router.push({ name: "not-found" });
+    } else {
+      console.error(error);
+    }
+  }
+}
 
-- Системы предсказательной полиции поддерживают расовую дискриминацию и предрассудки в практиках полицейской службы.
+watch(
+  () => route.params.id,
+  async (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      // При изменении страницы загружаем статьи
+      await loadArticle();
+    }
+  }
+);
 
-- Использование этих систем было показано, что увеличивает полицейское мучительство меньшинств.
-
-- Правительство должно решать дискриминационные практики, заложенные в этих алгоритмах, и установить меры предосторожности для предотвращения их неправильного использования.
-
-### Дальнейшие интересы:
-
-- Статья выражает озабоченность более широким использованием технологий надзорной деятельности со стороны правительства.
-
-- Отсутствие прозрачности и отчетности в развертывании этих технологий поднимают вопросы этики и прав человека.
-
-### Ключевые слова:
-
-- Предиктивная полиция
-- Бias
-- Дискриминация
-- Алгоритм
-- Данные сбора
-- Закон о гражданских правах
-
-### Выделенный текст:
-
-"Нарастающая информация указывает на то, что технологии предсказательной полиции не сокращают преступность. Вместо этого они ухудшают равное обращение с гражданами цвета кожи со стороны правоохранительных органов."`);
-const markdownToHtml = computed(() => marked.parse(markdown.value));
-
-onMounted(() => {
+onMounted(async () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
+  await loadArticle();
 });
 </script>
 
@@ -55,7 +64,7 @@ onMounted(() => {
   <div id="header" class="w-full h-full">
     <Header />
   </div>
-  <div class="container mx-auto">
+  <div v-if="article" class="container mx-auto">
     <div class="content">
       <div class="recomendation border-2 border-slate-300">
         <div>
@@ -64,11 +73,11 @@ onMounted(() => {
       </div>
       <div class="card">
         <div v-if="1" class="title">
-          <pre>Sunday , 1 Jan 2023</pre>
+          <pre>{{ article.publishedDate }}</pre>
         </div>
-        <h3>Article Title</h3>
+        <h3>{{ article.title }}</h3>
         <img
-          src="ImagePlace"
+          :src="article.imageSource"
           class="dark:shadow-violet-900 rounded-xl shadow-lg"
         />
         <div id="context" class="context">
@@ -89,6 +98,8 @@ onMounted(() => {
   align-items: flex-start;
   padding: 0px 32px 0px 32px;
   margin-top: 30px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
 }
 .content {
   display: flex;

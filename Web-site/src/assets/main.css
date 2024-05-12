@@ -23,6 +23,7 @@
     --text-size-regular: 16px;
     --text-size-small: 14px;
     --text-size-tiny: 12px;
+    --transition: background-color 0.3s cubic-bezier(0.47, 0, 0.745, 0.715);
 
   }
 
@@ -34,12 +35,11 @@
     --color-cover-bkg-rgb: 9, 13, 31;
     --color-black: #090d1f;
     --color-palette-dark-dynamic: #3e4348;
-
   }
 
   body {
     background-color: var(--color-bkg);
-    transition: all 0.3s ease-in-out;
+    transition: var(--transition);
   }
 
   .main-page {
@@ -81,7 +81,8 @@
     padding: 8px 16px;
     gap: 16px;
     background-color: #090d1f;
-    transition: background-color 0.3s ease-in-out;
+    transition: var(--transition);
+
   }
   .theme-switcher-icon {
     @apply z-0;
@@ -95,7 +96,8 @@
     padding: 8px 16px;
     gap: 16px;
     background-color: #f3f3f3;
-    transition: background-color 0.3s ease-in-out;
+    transition:  var(--transition);
+
   }
 
   /* Articles Block */
@@ -141,7 +143,7 @@
     @apply mb-6 rounded-2xl border p-4;
     border: var(--color-bkg);
     background: var(--color-bkg);
-    transition: all 0.3s ease-in-out;
+    transition: all 0.25s ease-in-out, var(--transition);
   }
 
   .article-card-body:hover {
