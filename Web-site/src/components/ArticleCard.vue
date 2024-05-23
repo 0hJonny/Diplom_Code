@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { marked } from "marked";
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 
 import ArticleTag from "./ArticleTag.vue";
@@ -84,45 +84,45 @@ const routeToArticle = () => {
 };
 </script>
 <template>
-  <div class="article-card-body flex flex-col">
-    <img
-      @click="routeToArticle"
-      class="article-card-image"
-      :src="article.imageSource"
-      alt="article-image"
-    />
-    <div>
-      <div class="card-meta flex gap-1 font-semibold text-sm text-violet-700">
-        <h3 class="card-meta-author">{{ article.category }}</h3>
-        <h3 class="card-meta-separator">•</h3>
-        <h3 class="card-meta-date">{{ article.publishedDate }}</h3>
-      </div>
-      <div
+  <div class="article-card-container md:max-w-full max-w-lg mx-auto">
+    <div class="article-card-container__inner">
+      <img
         @click="routeToArticle"
-        class="article-card-title flex justify-between"
-      >
-        <h2>{{ article.title }}</h2>
-        <img
-          class="invert dark:invert-0"
-          src="/arrow-up-right.svg"
-          alt="arrow-icon"
-        />
-      </div>
-      <div>
-        <p
-          class="font-normal text-base text-slate-600 article-truncate-lines-2 line-clamp-3"
-        >
-         <!-- {{ markdown }} -->
-         <div v-html="markdownToHtml"></div>
-        </p>
-      </div>
-    </div>
-    <div class="article-card-footer flex flex-wrap gap-2 mt-2">
-      <ArticleTag
-        v-for="(tag, index) in article.tags"
-        :key="index"
-        :tag="tag"
+        class="article-card-image"
+        :src="article.imageSource"
+        alt="article-image"
       />
+      <div class="article-card-content">
+        <div class="card-meta flex gap-1 font-semibold text-sm text-violet-700">
+          <h3 class="card-meta-author">{{ article.category }}</h3>
+          <h3 class="card-meta-separator">•</h3>
+          <h3 class="card-meta-date">{{ article.publishedDate }}</h3>
+        </div>
+        <div
+          @click="routeToArticle"
+          class="article-card-title flex justify-between"
+        >
+          <h2 class="text-xl font-semibold">{{ article.title }}</h2>
+          <img
+            class="invert dark:invert-0"
+            src="/arrow-up-right.svg"
+            alt="arrow-icon"
+          />
+        </div>
+        <div>
+          <p class="font-normal text-base text-slate-600 article-truncate-lines-2 line-clamp-3">
+           <!-- {{ markdown }} -->
+           <div v-html="markdownToHtml"></div>
+          </p>
+        </div>
+        <div class="article-card-footer flex flex-wrap gap-2 mt-2">
+          <ArticleTag
+            v-for="(tag, index) in article.tags"
+            :key="index"
+            :tag="tag"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -130,6 +130,21 @@ const routeToArticle = () => {
 
 <style scoped>
 
+  @media (min-width: 768px) {
+    h2 {
+      font-size: min(1.2rem, calc(1.2vw + 1rem));
+    }
 
+    p {
+      font-size: min(0.9rem, calc(0.9vw + 0.9rem));
+    }
 
+    .card-meta-author {
+      font-size: min(0.7rem, calc(0.7vw + 0.7rem));
+    }
+
+    .card-meta-date {
+      font-size: min(0.7rem, calc(0.7vw + 0.7rem));
+    }
+  }
 </style>

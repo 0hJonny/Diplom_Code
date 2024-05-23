@@ -3,7 +3,7 @@ import { marked } from "marked"; //marked from "marked";
 import { ref, computed, onMounted, watch } from "vue";
 
 import Header from "../components/Header.vue";
-import ArticlesList from "../components/ArticlesList.vue";
+import ArticlesList from "../components/ArticlesListPage.vue";
 import TitleHeader from "../components/TitleHeader.vue";
 import urls from "@/utils/urls";
 import { useRoute, useRouter } from "vue-router";
@@ -66,13 +66,19 @@ onMounted(async () => {
   </div>
   <div v-if="article" class="container mx-auto">
     <div class="content">
-      <div class="recomendation border-2 border-slate-300">
-        <div>
+      <div class="recomendation">
+        <div class="mb-4">
           <h4>Recomendation</h4>
         </div>
+        <ArticlesList
+          class="mb-4"
+          :sideBar="true"
+          :ignoreArticle="article.id"
+          :pagesData="{ currentPage: 1, elementsPerPage: 4 }"
+        />
       </div>
       <div class="card">
-        <div v-if="1" class="title">
+        <div class="title">
           <pre>{{ article.publishedDate }}</pre>
         </div>
         <h3>{{ article.title }}</h3>
@@ -130,6 +136,7 @@ onMounted(async () => {
 }
 
 .card {
+  max-width: calc(2.5 / 5 * (100vw - 32px)); /* 3/5 of display size */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
