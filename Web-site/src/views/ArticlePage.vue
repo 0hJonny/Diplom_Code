@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { marked } from "marked"; //marked from "marked";
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, onBeforeUnmount } from "vue";
 
 import Header from "../components/Header.vue";
 import ArticlesList from "../components/ArticlesListPage.vue";
 import TitleHeader from "../components/TitleHeader.vue";
 import urls from "@/utils/urls";
+import ArticleTag from "@/components/ArticleTag.vue";
 import { useRoute, useRouter } from "vue-router";
 import { languageLocales } from "@/utils/languageLocales";
 import { mapToArticle, type Article } from "@/models";
@@ -20,6 +21,10 @@ const markdownToHtml = computed(() =>
   marked.parse(article.value?.content || "")
 );
 
+function openSourceLink(url: string) {
+  window.open(url, "_blank");
+}
+// Загружаем статью
 async function loadArticle() {
   try {
     // Получаем данные от сервиса
@@ -29,7 +34,10 @@ async function loadArticle() {
 
     // Преобразуем данные в объекты типа Article
     article.value = mapToArticle(rawData);
-    console.log("article.value: ", article.value);
+    if (article.value.id === "") {
+      router.push({ name: "not-found" });
+    }
+    // console.log("article.value: ", article.value);
 
     // Обновляем значение реактивной переменной articles
 
@@ -58,6 +66,24 @@ onMounted(async () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
   await loadArticle();
 });
+
+// Следим за изменениями атрибута языка на html и обновляем реактивную переменную lang при изменении
+
+const observer = new MutationObserver((mutationsList) => {
+  for (const mutation of mutationsList) {
+    if (mutation.type === "attributes" && mutation.attributeName === "lang") {
+      // При изменении языка загружаем статьи
+      loadArticle();
+    }
+  }
+});
+
+const config = { attributes: true };
+observer.observe(document.documentElement, config);
+
+onBeforeUnmount(() => {
+  observer.disconnect();
+});
 </script>
 
 <template>
@@ -77,6 +103,8 @@ onMounted(async () => {
           :pagesData="{ currentPage: 1, elementsPerPage: 4 }"
         />
       </div>
+
+      <!-- Article -->
       <div class="card">
         <div class="title">
           <pre>{{ article.publishedDate }}</pre>
@@ -84,11 +112,51 @@ onMounted(async () => {
         <h3>{{ article.title }}</h3>
         <img
           :src="article.imageSource"
-          class="dark:shadow-violet-900 rounded-xl shadow-lg"
+          class="dark:shadow-violet-900 rounded-xl shadow-lg w-full"
         />
+        <!-- Container -->
+        <div class="justify-between flex w-full">
+          <!-- {{ article.neuralNetworks }} -->
+          <div class="tags-container-neural">
+            <div class="tags">
+              <div
+                v-for="(tag, key) in article.neuralNetworks"
+                :key="key"
+                class="tag-popup"
+              >
+                <div class="tooltip rounded-lg p-2">
+                  {{ key }}
+                </div>
+                <ArticleTag :tag="tag" />
+              </div>
+            </div>
+          </div>
+          <!-- SourceUrl -->
+          <div
+            v-if="'article.sourceUrl'"
+            class="tags-container-tag"
+            @click="openSourceLink('article.sourceUrl')"
+          >
+            <div class="tags">
+              <div class="tag-popup">
+                <div class="tooltip rounded-lg p-2">
+                  {{ "article.sourceUrl" }}
+                </div>
+                <ArticleTag :tag="'Source'" />
+              </div>
+            </div>
+          </div>
+        </div>
         <div id="context" class="context">
           <!-- {{ markdown }} -->
-          <div v-html="markdownToHtml"></div>
+          <div v-html="markdownToHtml" />
+          <div class="tags-container-tag">
+            <div class="tags">
+              <div v-for="(tag, key) in article.tags" :key="key">
+                <ArticleTag :tag="tag" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -96,6 +164,30 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.tag-popup {
+  position: relative;
+  margin-right: 5px;
+}
+.tag-popup .tooltip {
+  position: absolute;
+  top: -3.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.tag-popup:hover .tooltip {
+  opacity: 1;
+  z-index: 1;
+}
+.tooltip {
+  position: absolute;
+  top: -3.5rem;
+  left: 50%;
+  color: var(--color-white);
+  background-color: var(--color-text-title);
+}
+
 .container {
   position: static;
   display: flex;
@@ -232,5 +324,15 @@ onMounted(async () => {
   padding: 0px;
 
   margin: 32px 0px;
+}
+
+.tags {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0px;
+  margin: 16px 0px;
+  gap: 10px;
 }
 </style>

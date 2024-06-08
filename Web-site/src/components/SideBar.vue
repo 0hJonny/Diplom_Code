@@ -175,24 +175,25 @@ export default {
     return {
       isMenuOpen: false,
       menuItems: [
-        {
-          label: "Новости",
-          children: [
-            {
-              label: "Новости кибербезопасности",
-              link: "https://localhost/news/"
-            },
-            {
-              label: "Новости криптовалют",
-              link: "https://localhost/crypto-coins/"
-            }
-          ]
-        },
-        { label: "Редакция", link: "https://localhost/editorial/" },
-        { label: "Безопасность", link: "https://localhost/security/" },
-        { label: "Конфиденциальность", link: "https://localhost/privacy/" },
-        { label: "Криптовалюта", link: "https://localhost/crypto/" },
-        { label: "Технологии", link: "https://localhost/tech/" },
+        // {
+        //   label: "Новости",
+        //   children: [
+        //     {
+        //       label: "Новости кибербезопасности",
+        //       link: "https://localhost/news/"
+        //     },
+        //     {
+        //       label: "Новости криптовалют",
+        //       link: "https://localhost/crypto-coins/"
+        //     }
+        //   ]
+        // },
+        { label: "Home", link: "/" },
+        { label: "Редакция", link: "/editorial" },
+        { label: "Безопасность", link: "/security" },
+        { label: "Конфиденциальность", link: "/privacy" },
+        { label: "Криптовалюта", link: "/crypto" },
+        { label: "Технологии", link: "/tech" },
         {
           label: "Ресурсы",
           children: [
@@ -205,7 +206,8 @@ export default {
               link: "https://localhost/how-to-use-vpn/"
             }
           ]
-        }
+        },
+        { label: "О нас", link: "/about" }
         // Добавьте остальные пункты меню по аналогии
       ],
       socialItems: [

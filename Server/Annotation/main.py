@@ -14,7 +14,7 @@ def main():
         Worker = Client(queue)
         article_copy = copy.deepcopy(Worker.article)
         print(article_copy)
-        return
+        # return
         for attempt in range(3):
             try:
                 Worker.article = copy.deepcopy(article_copy)

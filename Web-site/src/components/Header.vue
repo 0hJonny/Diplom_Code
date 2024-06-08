@@ -2,6 +2,7 @@
 import { RouterLink } from "vue-router";
 import ThemeSwitcher from "./ThemeSwitcher.vue";
 import SideBar from "./SideBar.vue";
+import LanguageSwitcher from "./LanguageSwitcher.vue";
 </script>
 
 <template>
@@ -22,15 +23,9 @@ import SideBar from "./SideBar.vue";
         </div>
         <div class="header-right-side flex gap-4 items-center">
           <div>
-            <RouterLink to="/">
-              <h2>Home</h2>
-            </RouterLink>
+            <LanguageSwitcher />
           </div>
-          <div>
-            <RouterLink to="/about">
-              <h2>About</h2>
-            </RouterLink>
-          </div>
+
           <div>
             <ThemeSwitcher />
             <!-- <div class="theme-switcher relative">

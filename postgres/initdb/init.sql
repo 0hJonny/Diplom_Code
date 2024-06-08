@@ -188,6 +188,179 @@ AFTER DELETE ON tags
 FOR EACH ROW
 EXECUTE FUNCTION delete_articles_on_tag_delete();
 
+-- Логирование запросов
+CREATE TABLE IF NOT EXISTS audit_log (
+    audit_id SERIAL PRIMARY KEY,
+    table_name TEXT,
+    operation CHAR(1), -- 'I' for insert, 'U' for update, 'D' for delete
+    old_data JSONB,
+    new_data JSONB,
+    changed_at TIMESTAMP DEFAULT current_timestamp
+);
+
+-- Создание триггера для логирования запросов
+-- Триггер для таблицы articles
+CREATE OR REPLACE FUNCTION log_articles_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log (table_name, operation, new_data)
+        VALUES ('articles', 'I', row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO audit_log (table_name, operation, old_data, new_data)
+        VALUES ('articles', 'U', row_to_json(OLD), row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO audit_log (table_name, operation, old_data)
+        VALUES ('articles', 'D', row_to_json(OLD));
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER articles_audit_trigger
+AFTER INSERT OR UPDATE OR DELETE ON articles
+FOR EACH ROW
+EXECUTE FUNCTION log_articles_changes();
+
+-- Триггер для таблицы tags
+
+CREATE OR REPLACE FUNCTION log_tags_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log (table_name, operation, new_data)
+        VALUES ('tags', 'I', row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO audit_log (table_name, operation, old_data, new_data)
+        VALUES ('tags', 'U', row_to_json(OLD), row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO audit_log (table_name, operation, old_data)
+        VALUES ('tags', 'D', row_to_json(OLD));
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tags_audit_trigger
+AFTER INSERT OR UPDATE OR DELETE ON tags
+FOR EACH ROW
+EXECUTE FUNCTION log_tags_changes();
+
+-- Триггер для таблицы article_tags
+
+CREATE OR REPLACE FUNCTION log_article_tags_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log (table_name, operation, new_data)
+        VALUES ('article_tags', 'I', row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO audit_log (table_name, operation, old_data)
+        VALUES ('article_tags', 'D', row_to_json(OLD));
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER article_tags_audit_trigger
+AFTER INSERT OR DELETE ON article_tags
+FOR EACH ROW
+EXECUTE FUNCTION log_article_tags_changes();
+
+-- Триггер для таблицы annotations
+
+CREATE OR REPLACE FUNCTION log_annotations_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log (table_name, operation, new_data)
+        VALUES ('annotations', 'I', row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO audit_log (table_name, operation, old_data, new_data)
+        VALUES ('annotations', 'U', row_to_json(OLD), row_to_json(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO audit_log (table_name, operation, old_data)
+        VALUES ('annotations', 'D', row_to_json(OLD));
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER annotations_audit_trigger
+AFTER INSERT OR UPDATE OR DELETE ON annotations
+FOR EACH ROW
+EXECUTE FUNCTION log_annotations_changes();
+
+-- !!!!!!!!!!!!!!!  Заметки по audit_log     !!!!!!!!!!!!!!!
+
+-- SELECT * FROM audit_log;
+
+-- -- Просмотр изменений только для таблицы articles
+-- SELECT * FROM audit_log WHERE table_name = 'articles';
+
+-- -- Просмотр всех вставок в таблицу annotations
+-- SELECT * FROM audit_log WHERE table_name = 'annotations' AND operation = 'I';
+
+-- -- Просмотр изменений для конкретной записи по audit_id
+-- SELECT * FROM audit_log WHERE audit_id = 123;
+
+
+-- ### 1. Проверка непривязанных записей в таблице `articles`
+
+
+-- -- Проверка непривязанных записей в таблице articles без соответствующей записи в таблице themes
+-- SELECT a.*
+-- FROM articles a
+-- LEFT JOIN themes t ON a.theme_id = t.theme_id
+-- WHERE t.theme_id IS NULL;
+
+-- -- Проверка непривязанных записей в таблице articles без соответствующей записи в таблице languages
+-- SELECT a.*
+-- FROM articles a
+-- LEFT JOIN languages l ON a.language_id = l.language_id
+-- WHERE l.language_id IS NULL;
+-- ```
+
+-- ### 2. Проверка непривязанных записей в таблице `article_tags`
+
+-- ```sql
+-- -- Проверка непривязанных записей в таблице article_tags без соответствующей записи в таблице articles
+-- SELECT at.*
+-- FROM article_tags at
+-- LEFT JOIN articles a ON at.article_id = a.id
+-- WHERE a.id IS NULL;
+
+-- -- Проверка непривязанных записей в таблице article_tags без соответствующей записи в таблице tags
+-- SELECT at.*
+-- FROM article_tags at
+-- LEFT JOIN tags t ON at.tag_id = t.tag_id
+-- WHERE t.tag_id IS NULL;
+-- ```
+
+-- ### 3. Проверка непривязанных записей в таблице `annotations`
+
+-- ```sql
+-- -- Проверка непривязанных записей в таблице annotations без соответствующей записи в таблице articles
+-- SELECT an.*
+-- FROM annotations an
+-- LEFT JOIN articles a ON an.article_id = a.id
+-- WHERE a.id IS NULL;
+
+-- -- Проверка непривязанных записей в таблице annotations без соответствующей записи в таблице languages
+-- SELECT an.*
+-- FROM annotations an
+-- LEFT JOIN languages l ON an.language_id = l.language_id
+-- WHERE l.language_id IS NULL;
+
+-- !!!!!!!!!!!!!!!  Конец заметки по audit_log     !!!!!!!!!!!!!!!
+
 -- Подключение к базе данных "users"
 \c users;
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;

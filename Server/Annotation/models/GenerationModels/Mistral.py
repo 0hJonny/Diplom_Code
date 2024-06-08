@@ -53,6 +53,16 @@ class Mistral(GenerationModel):
         
         return article
 
+    def trim_text(self, text):
+        # Используем регулярное выражение для поиска первого слова и двоеточия после него
+        match = re.search(r'^\s*\w+\s*:', text)
+        if match:
+            # Если найдено двоеточие после первого слова, обрезаем строку до него и удаляем лишние пробелы
+            trimmed_text = text[match.end():].strip()
+            return trimmed_text
+        else:
+            # Если двоеточие не найдено или оно не после первого слова, возвращаем исходную строку
+            return text.strip()
         
     def translate(self, article: ArticleAnnotation, stream=None, options=None) -> ArticleAnnotation:
         prompt = """
@@ -72,11 +82,14 @@ class Mistral(GenerationModel):
 
         print("'%s'" % answer)
         # Parse answer
-        title_regex = r"\[?Title: (.+?)(?:\]|$)"
-        result = re.search(title_regex, answer, re.MULTILINE)
-        print(result)
-        if result:
-            article.title = result.group(1).strip().replace('"', '')
+        answer.replace('```', '')
+        match = re.search(r'\[?Title: (.+?)(?:\]|$)', answer)
+        if match:
+            article.title = match.group(1).strip().replace('"', '')
+        else:
+            match = re.search(r'(?<=Translated text:\s)(.+)', answer)
+            if match:
+                article.title = self.trim_text(match.group(1).strip().replace('"', ''))
 
         print(article.title)
 
@@ -96,7 +109,9 @@ class Mistral(GenerationModel):
 
         answer = self._generate_text(prompt=prompt, stream=stream, options=options)
 
+
         answer = answer.message["content"]
+        answer = answer.replace('```', '')
 
         index = answer.find('###')
 

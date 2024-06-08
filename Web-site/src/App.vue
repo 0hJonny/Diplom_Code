@@ -6,13 +6,19 @@ import Footer from "./components/Footer.vue";
 import { ref, onMounted } from "vue";
 import { supportedLanguages } from "@/utils/supportedLanguages.js";
 
-const defaultLanguage = ref<string>(navigator.language.split("-")[0] || "en"); // Default language
+const defaultLanguage = ref<string>(
+  localStorage.getItem("lang") || navigator.language.split("-")[0] || "en"
+); // Default language
 
 onMounted(() => {
-  document.documentElement.setAttribute(
-    "lang",
-    supportedLanguages[defaultLanguage.value] ? defaultLanguage.value : "en"
-  );
+  const storedLanguage = localStorage.getItem("lang");
+  const lang = supportedLanguages[defaultLanguage.value]
+    ? defaultLanguage.value
+    : "en";
+  if (!storedLanguage) {
+    localStorage.setItem("lang", lang);
+  }
+  document.documentElement.setAttribute("lang", lang);
 });
 </script>
 
