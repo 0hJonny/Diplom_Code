@@ -114,6 +114,9 @@ class Mistral(GenerationModel):
         answer = answer.replace('```', '')
 
         index = answer.find('###')
+        
+        if index == None:
+            return article
 
         if index != -1:
             answer = answer[index:]

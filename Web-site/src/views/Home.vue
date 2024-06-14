@@ -15,7 +15,7 @@ const router = useRouter();
 const pagesData = reactive({
   totalItems: 0,
   elementsPerPage: 12,
-  currentPage: 1
+  currentPage: Number(router.currentRoute.value.query.page) || 1
 });
 
 const lang = ref(document.documentElement.getAttribute("lang") || "en");

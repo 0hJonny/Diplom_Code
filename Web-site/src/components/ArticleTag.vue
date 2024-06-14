@@ -16,7 +16,7 @@ const tagStyles: string[] = [
   "tag-card-cyan",
   "tag-card-pink",
   "tag-card-purple",
-  "tag-card-teal",
+  "tag-card-teal"
 ];
 
 /**
@@ -39,7 +39,7 @@ const randomTagStyle = computed(() => {
     class="cursor-pointer motion-reduce:transition-none motion-reduce:hover:transform-none duration-100 hover:scale-110"
   >
     <div :class="randomTagStyle">
-      {{ tag }}
+      {{ tag.charAt(0).toUpperCase() + tag.slice(1) }}
     </div>
   </div>
 </template>

@@ -12,6 +12,7 @@ func GetArticleDetailsWeb(article *models.ArticleWebQuery) (*models.ArticleWeb, 
 	SELECT 
 		articles.id, 
 		COALESCE(titles.title, '') AS title,
+		articles.source_link,
 		articles.created_at, 
 		themes.theme_name,
 		json_agg(tags.tag_name) AS tags,

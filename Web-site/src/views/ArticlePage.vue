@@ -135,12 +135,12 @@ onBeforeUnmount(() => {
           <div
             v-if="'article.sourceUrl'"
             class="tags-container-tag"
-            @click="openSourceLink('article.sourceUrl')"
+            @click="openSourceLink(article.sourceLink)"
           >
             <div class="tags">
               <div class="tag-popup">
-                <div class="tooltip rounded-lg p-2">
-                  {{ "article.sourceUrl" }}
+                <div class="tooltip rounded-lg p-2 cursor-pointer">
+                  {{ article.sourceLink }}
                 </div>
                 <ArticleTag :tag="'Source'" />
               </div>
@@ -168,24 +168,48 @@ onBeforeUnmount(() => {
   position: relative;
   margin-right: 5px;
 }
+
 .tag-popup .tooltip {
   position: absolute;
-  top: -3.5rem;
+  top: calc(100% + 5px);
   left: 50%;
   transform: translateX(-50%);
   opacity: 0;
   transition: opacity 0.3s;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-text-title);
 }
 .tag-popup:hover .tooltip {
   opacity: 1;
   z-index: 1;
+  display: block;
+  visibility: visible;
+  transition:
+    opacity 0.3s,
+    visibility 0s;
+}
+.tag-popup:not(:hover) .tooltip {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s,
+    visibility 0.3s;
 }
 .tooltip {
   position: absolute;
-  top: -3.5rem;
+  top: -100%;
   left: 50%;
+  transform: translateX(-50%);
   color: var(--color-white);
   background-color: var(--color-text-title);
+  text-overflow: ellipsis;
+  /* white-space: nowrap; */
+  /* overflow: hidden; */
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
 .container {

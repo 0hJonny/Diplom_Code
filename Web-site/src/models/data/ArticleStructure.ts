@@ -12,7 +12,7 @@ export interface Article {
     translator: string;
   };
   imageSource?: string;
-
+  sourceLink?: string;
 }
 
 /**
@@ -43,6 +43,7 @@ export function mapToArticle(data: any): Article {
           data.image_source
         }`
       : "",
+      sourceLink: data.source_link || "",
   };
 }
 

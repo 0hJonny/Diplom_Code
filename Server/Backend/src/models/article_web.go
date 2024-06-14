@@ -15,6 +15,7 @@ type ArticleWeb struct {
 	Content        string                 `json:"content" gorm:"column:annotation"`
 	LanguageCode   string                 `json:"language_code"`
 	ImageSource    string                 `json:"image_source,omitempty"`
+	SourceLink     string                 `json:"source_link,omitempty"`
 	NeuralNetworks map[string]interface{} `gorm:"serializer:json" json:"neural_networks,omitempty"`
 }
 

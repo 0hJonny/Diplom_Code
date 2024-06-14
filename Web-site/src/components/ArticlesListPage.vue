@@ -136,3 +136,11 @@ watch(
           <img src="/arrow-right.svg" alt="right-icon" />
         </div> -->
 </template>
+
+<style scoped>
+@media (max-width: 768px) {
+  .articles-container-bottom.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+</style>
