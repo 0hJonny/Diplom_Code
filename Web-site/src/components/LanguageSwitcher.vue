@@ -25,23 +25,48 @@ const route = useRoute();
 const selectedLanguage = ref("");
 
 onMounted(() => {
+  initLanguage();
   selectedLanguage.value = getSelectedLanguage();
+  handleChangeLanguage();
+  setCurrentLanguage();
 });
 
-function handleChangeLanguage() {
-  document.documentElement.setAttribute("lang", selectedLanguage.value);
-  localStorage.setItem("lang", selectedLanguage.value);
-  router.push({
+function initLanguage() {
+  if (!Object.keys(languageLocales).includes(defaultLanguage.value)) {
+    defaultLanguage.value = "en";
+  }
+
+  const storedLanguage = localStorage.getItem("lang");
+  const lang = languageLocales[defaultLanguage.value]
+    ? defaultLanguage.value
+    : "en";
+  if (!storedLanguage) {
+    localStorage.setItem("lang", lang);
+  }
+  document.documentElement.setAttribute("lang", lang);
+}
+
+const defaultLanguage = ref<string>(
+  localStorage.getItem("lang") || navigator.language.split("-")[0] || "en"
+); // Default language
+
+function setCurrentLanguage() {
+  router.replace({
     query: { ...route.query, lang: selectedLanguage.value }
   });
 }
 
+function handleChangeLanguage() {
+  document.documentElement.setAttribute("lang", selectedLanguage.value);
+  localStorage.setItem("lang", selectedLanguage.value);
+  setCurrentLanguage();
+}
+
 function getSelectedLanguage(): string {
-  return (
-    (route.query.lang as string) ||
-    (document.documentElement.getAttribute("lang") as string) ||
-    "en"
-  );
+  return (Object.keys(languageLocales).includes(route.query.lang as string)
+    ? (route.query.lang as string)
+    : document.documentElement.getAttribute("lang") ||
+      "en") as string as string;
 }
 </script>
 

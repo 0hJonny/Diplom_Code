@@ -23,6 +23,7 @@ type ArticleWebQuery struct {
 	LanguageCode string `form:"language_code" binding:"required"`
 	ArticleID    string `form:"article_id,omitempty" binding:"omitempty"`
 	Category     string `form:"category,omitempty" binding:"omitempty"`
+	Query        string `form:"query,omitempty" binding:"omitempty"`
 	Limit        int    `form:"limit,omitempty" binding:"omitempty"`
 	Page         int    `form:"page,omitempty" binding:"omitempty"`
 	Offset       int

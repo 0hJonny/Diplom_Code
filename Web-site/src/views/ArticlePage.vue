@@ -67,23 +67,33 @@ onMounted(async () => {
   await loadArticle();
 });
 
-// Следим за изменениями атрибута языка на html и обновляем реактивную переменную lang при изменении
+// // Следим за изменениями атрибута языка на html и обновляем реактивную переменную lang при изменении
 
-const observer = new MutationObserver((mutationsList) => {
-  for (const mutation of mutationsList) {
-    if (mutation.type === "attributes" && mutation.attributeName === "lang") {
-      // При изменении языка загружаем статьи
-      loadArticle();
+watch(
+  () => router.currentRoute.value.query.lang,
+  async (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      // При изменении языка перезагружаем страницу
+      window.location.reload();
     }
   }
-});
+);
 
-const config = { attributes: true };
-observer.observe(document.documentElement, config);
+// const observer = new MutationObserver((mutationsList) => {
+//   for (const mutation of mutationsList) {
+//     if (mutation.type === "attributes" && mutation.attributeName === "lang") {
+//       // При изменении языка загружаем статьи
+//       window.location.reload();
+//     }
+//   }
+// });
 
-onBeforeUnmount(() => {
-  observer.disconnect();
-});
+// const config = { attributes: true };
+// observer.observe(document.documentElement, config);
+
+// onBeforeUnmount(() => {
+//   observer.disconnect();
+// });
 </script>
 
 <template>
@@ -153,7 +163,9 @@ onBeforeUnmount(() => {
           <div class="tags-container-tag">
             <div class="tags">
               <div v-for="(tag, key) in article.tags" :key="key">
-                <ArticleTag :tag="tag" />
+                <a :href="`/search?tag=${tag}`">
+                  <ArticleTag :tag="tag" />
+                </a>
               </div>
             </div>
           </div>

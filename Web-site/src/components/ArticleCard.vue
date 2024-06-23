@@ -80,9 +80,15 @@ const markdownToHtml = computed(() => {
 });
 
 const routeToArticle = () => {
-  router.push({ name: "article", params: { id: props.article.id } });
+  const currentLang = document.documentElement.getAttribute('lang') || 'en'
+  router.push({
+    name: "article",
+    params: { id: props.article.id },
+    query: { lang: currentLang }
+  });
 };
 </script>
+
 <template>
   <div class="article-card-container md:max-w-full max-w-lg mx-auto">
     <div class="article-card-container__inner">
@@ -115,12 +121,12 @@ const routeToArticle = () => {
            <div v-html="markdownToHtml"></div>
           </p>
         </div>
-        <div class="article-card-footer flex flex-wrap gap-2 mt-2">
-          <ArticleTag
-            v-for="(tag, index) in article.tags"
-            :key="index"
-            :tag="tag"
-          />
+        <div class="article-card-footer tags__container">
+          <div v-for="(tag, index) in article.tags" :key="index">
+            <a :href="`/search?tag=${tag}`">
+            <ArticleTag :tag="tag" />
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -129,7 +135,13 @@ const routeToArticle = () => {
 <!-- ../models/index -->
 
 <style scoped>
-
+.tags__container {
+  display: flex;
+  flex-wrap: wrap;
+  /* justify-content: space-between; */
+  gap: 0.5rem;
+ margin-top: 1rem;
+}
   @media (min-width: 768px) {
     h2 {
       font-size: min(1.2rem, calc(1.2vw + 1rem));

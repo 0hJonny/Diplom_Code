@@ -15,6 +15,16 @@ const pagesData = reactive({
   totalPages: 0
 });
 
+const setCurrentPage = (page: number) => {
+  if (page >= 1 && page <= pagesData.totalPages) {
+    pagesData.currentPage = page;
+    router.replace({
+      path: router.currentRoute.value.path,
+      query: { ...router.currentRoute.value.query, page: pagesData.currentPage }
+    });
+  }
+};
+
 /**
  * Calculate the total number of pages based on the total items and elements per page.
  *
@@ -30,12 +40,10 @@ const visiblePages = computed(() => {
     pagesData.totalPages != 0
   ) {
     pagesData.currentPage = pagesData.totalPages;
-    router.push(
-      `${router.currentRoute.value.path}?page=${pagesData.currentPage}`
-    );
+    setCurrentPage(pagesData.currentPage);
   } else if (pagesData.currentPage <= 1) {
     pagesData.currentPage = 1;
-    router.push(`${router.currentRoute.value.path}`);
+    setCurrentPage(pagesData.currentPage);
   }
 
   if (pagesData.totalPages <= 7) {
@@ -74,7 +82,7 @@ const changePage = (page: number) => {
   if (page >= 1 && page <= pagesData.totalPages) {
     pagesData.currentPage = page;
     window.scroll({ top: 0, left: 0, behavior: "smooth" });
-    router.push(`${router.currentRoute.value.path}?page=${page}`);
+    setCurrentPage(pagesData.currentPage);
   }
 };
 </script>

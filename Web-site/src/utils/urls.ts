@@ -5,7 +5,8 @@ export const urls: any = {
   articles: "/g/articles",
   articles_count: "/g/articles/count",
   articles_annotations: "/g/articles/annotations",
-  articles_detail: "/g/article/detailed", 
+  articles_detail: "/g/article/detailed",
+  search: "/g/article/search", 
   client_register: "/auth/register",
   client_login: "/auth/login"
   // client_verify: "/verify"
