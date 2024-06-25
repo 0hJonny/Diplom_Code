@@ -3,6 +3,9 @@ package utils
 import (
 	"fmt"
 	"go-gin-postgresql-backend/src/models"
+	"strings"
+
+	"github.com/lib/pq"
 )
 
 func GetArticleSearch(articleWebQuery *models.ArticleWebQuery) (*[]models.ArticleWeb, error) {
@@ -11,10 +14,18 @@ func GetArticleSearch(articleWebQuery *models.ArticleWebQuery) (*[]models.Articl
 
 	articleWebQuery.Offset = (articleWebQuery.Page - 1) * articleWebQuery.Limit
 
-	// lang, err := GetLanguageIdByCode(&models.Language{Code: articleWebQuery.LanguageCode})
-	// if err != nil {
-	// 	return &[]models.ArticleWeb{}, err
-	// }
+	var content string
+	var tags []string
+
+	parse_query := strings.ReplaceAll(articleWebQuery.Query, "\\", "")
+	queryParts := strings.Split(parse_query, "!!")
+	content = queryParts[0]
+	for _, tag := range queryParts[1:] {
+		if tag == "" {
+			continue
+		}
+		tags = append(tags, strings.TrimSpace(strings.Trim(tag, " ")))
+	}
 
 	query := `
 		SELECT 
@@ -50,38 +61,25 @@ func GetArticleSearch(articleWebQuery *models.ArticleWebQuery) (*[]models.Articl
 		query += ` WHERE annotations.article_id IS NOT NULL`
 	}
 
+	if content != "" {
+		query += `
+		AND (to_tsvector('simple', COALESCE(titles.title, '')) @@ plainto_tsquery('simple', $2)
+		OR to_tsvector('simple', COALESCE(annotations.annotation, '')) @@ plainto_tsquery('simple', ?))
+		`
+		args = append(args, content)
+
+	}
+	if len(tags) > 0 {
+		query += `
+		AND (articles.id, lower(tags.tag_name)) IN (SELECT articles.id, lower(unnest(?::text[])) AS tag_name FROM articles)
+		`
+		args = append(args, pq.Array(tags))
+	}
 	query += `
-		AND (
-			to_tsvector('simple', COALESCE(titles.title, '')) @@ plainto_tsquery('simple', $2) 
-			OR to_tsvector('simple', COALESCE(annotations.annotation, '')) @@ plainto_tsquery('simple', $2)
-			OR (
-				SELECT array_to_string(array_agg(tags.tag_name), ' ')
-				FROM tags
-				JOIN article_tags ON article_tags.tag_id = tags.tag_id
-				WHERE article_id = articles.id
-			) @@ plainto_tsquery('simple', $2)
-		)
 		GROUP BY articles.id, titles.title, themes.theme_name, annotations.annotation, lang.language_name
-		ORDER BY 
-			articles.post_date DESC,
-			ts_rank(to_tsvector('simple', COALESCE(titles.title, '')), plainto_tsquery('simple', $2)) DESC,
-			ts_rank(to_tsvector('simple', COALESCE(annotations.annotation, '')), plainto_tsquery('simple', ?)) DESC
 		LIMIT ? OFFSET ?;`
 
-	args = append(args, articleWebQuery.Query, articleWebQuery.Limit, articleWebQuery.Offset)
-
-	// With Lang
-	// query += `
-	// 	AND (to_tsvector(?, COALESCE(titles.title, '')) @@ plainto_tsquery(?, ?)
-	// 	OR to_tsvector(?, COALESCE(annotations.annotation, '')) @@ plainto_tsquery(?, ?))
-	// 	GROUP BY articles.id, titles.title, themes.theme_name, annotations.annotation, lang.language_name
-	// 	ORDER BY
-	// 		ts_rank(to_tsvector(?, COALESCE(titles.title, '')), plainto_tsquery(?, ?)) DESC,
-	// 		ts_rank(to_tsvector(?, COALESCE(annotations.annotation, '')), plainto_tsquery(?, ?)) DESC,
-	// 		articles.post_date DESC
-	// 	LIMIT ? OFFSET ?;`
-
-	// args = append(args, lang.Name, lang.Name, articleWebQuery.Query, lang.Name, lang.Name, articleWebQuery.Query, lang.Name, lang.Name, articleWebQuery.Query, lang.Name, lang.Name, articleWebQuery.Query, articleWebQuery.Limit, articleWebQuery.Offset)
+	args = append(args, articleWebQuery.Limit, articleWebQuery.Offset)
 
 	err = models.DatabaseArticles.Raw(query, args...).Scan(&articleWebCollection).Error
 

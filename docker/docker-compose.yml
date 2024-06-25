@@ -111,7 +111,7 @@ services:
     build:
       context: ../ollama
       dockerfile: Dockerfile
-    runtime: nvidia
+    # runtime: nvidia
     ports:
       - "11434:11434"
     volumes:
@@ -164,6 +164,7 @@ services:
       - "80:3001"
     volumes:
       - ../Web-site:/app
+      - /app/node_modules
     restart: always
     depends_on:
       - golang-server
