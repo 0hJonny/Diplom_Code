@@ -190,7 +190,6 @@ EXECUTE FUNCTION delete_articles_on_tag_delete();
 
 -- Создание RUM индексов
 
-CREATE INDEX idx_tags_rum ON tags USING rum (to_tsvector('simple', tag_name));
 CREATE INDEX idx_title_rum ON titles USING rum (to_tsvector('simple', title));
 CREATE INDEX idx_annotation_rum ON annotations USING rum (to_tsvector('simple', annotation));
 
