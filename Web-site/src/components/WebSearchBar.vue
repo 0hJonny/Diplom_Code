@@ -13,7 +13,7 @@ const router = useRouter();
 
 const pagesData = reactive({
   totalItems: 0,
-  elementsPerPage: 12,
+  elementsPerPage: 120000,
   currentPage: Number(router.currentRoute.value.query.page) || 1
 });
 
@@ -108,7 +108,7 @@ async function getSearch() {
   <div class="search-bar" :class="{ focused: isFocused }">
     <div class="input-wrapper">
       <div v-for="(tag, index) in tags" :key="index" class="tag">
-        <ArticleTag :tag="tag" @click="removeTag(index)" />
+        <ArticleTag :tag="tag.replace('#', '')" @click="removeTag(index)" />
         <!-- {{ tag }} -->
         <!-- <span class="remove-tag" @click="removeTag(index)">x</span> -->
       </div>
@@ -129,7 +129,7 @@ async function getSearch() {
     >
       ❌
     </button>
-    <button @click="getSearch" class="search-button">Search</button>
+<button @click="getSearch" @keyup.enter="getSearch" class="search-button">Search</button>
   </div>
   <div
     class="card articles-container article-card-body"
@@ -214,6 +214,7 @@ input::placeholder {
   align-items: center;
   margin: 0.2rem;
   font-size: 0.9rem;
+  
   /* flex-basis: 0;
   flex-grow: 1; */
 

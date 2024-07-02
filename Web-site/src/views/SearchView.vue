@@ -8,6 +8,9 @@ import TitleHeader from "../components/TitleHeader.vue";
 import WebSearchBar from "../components/WebSearchBar.vue";
 import PaginationVue from "../components/Pagination.vue";
 import router from "@/router";
+onMounted(() => {
+  document.title = "Search"
+})
 </script>
 
 <template>

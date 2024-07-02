@@ -189,62 +189,44 @@ export default {
         //   ]
         // },
         { label: "Home", link: "/" },
-        { label: "Редакция", link: "/editorial" },
-        { label: "Безопасность", link: "/security" },
-        { label: "Конфиденциальность", link: "/privacy" },
-        { label: "Криптовалюта", link: "/crypto" },
-        { label: "Технологии", link: "/tech" },
-        {
-          label: "Ресурсы",
-          children: [
-            {
-              label: "Что такое VPN?",
-              link: "https://localhost/what-is-vpn/"
-            },
-            {
-              label: "Как использовать VPN?",
-              link: "https://localhost/how-to-use-vpn/"
-            }
-          ]
-        },
-        { label: "О нас", link: "/about" }
+        // { label: "Редакция", link: "/editorial" },
+        { label: "Security", link: "/security" },
+        { label: "Privacy", link: "/privacy" },
+        { label: "Crypto", link: "/crypto" },
+        { label: "Technology", link: "/tech" },
+        { label: "Search", link: "/search" },
+        // {
+        //   label: "Ресурсы",
+        //   children: [
+        //     {
+        //       label: "Что такое VPN?",
+        //       link: "https://localhost/what-is-vpn/"
+        //     },
+        //     {
+        //       label: "Как использовать VPN?",
+        //       link: "https://localhost/how-to-use-vpn/"
+        //     }
+        //   ]
+        // },
+        { label: "About", link: "/about" }
         // Добавьте остальные пункты меню по аналогии
       ],
       socialItems: [
+        // {
+        //   title: "LinkedIn",
+        //   link: "",
+        //   icon: "#linkedin-h"
+        // },
         {
-          title: "Twitter",
+          title: "Telegram",
           link: "",
-          icon: "#twitter-x"
+          icon: "#telegram-h"
         },
         {
-          title: "Facebook",
+          title: "Github",
           link: "",
-          icon: "#facebook-h"
-        },
-        {
-          title: "YouTube",
-          link: "",
-          icon: "#youtube-h"
-        },
-        {
-          title: "LinkedIn",
-          link: "",
-          icon: "#linkedin-h"
-        },
-        {
-          title: "TikTok",
-          link: "",
-          icon: "#tiktok-h"
-        },
-        {
-          title: "Flipboard",
-          link: "",
-          icon: "#flipboard-h"
-        },
-        {
-          title: "Newsletter",
-          link: "",
-          icon: "#subscribe-h"
+          icon: "#github-h"
+
         }
       ]
     };

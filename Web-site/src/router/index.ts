@@ -14,7 +14,33 @@ const router = createRouter({
       name: "search",
       component: () => import("@/views/SearchView.vue"),
     },
+    {
+      path: "/security",
+      name: "security",
+      component: () => import("@/views/SecurityView.vue"),
+    },
+    {
+      path: "/privacy",
+      name: "privacy",
+      component: () => import("@/views/PrivacyView.vue"),
+    },
+    {
+      path: "/tech",
+      name: "tech",
+      component: () => import("@/views/TechView.vue"),
+    },
+    {
+      path: "/crypto",
+      name: "crypto",
+      component: () => import("@/views/CryptoView.vue"),
+    },
 
+
+    {
+      path: "/about",
+      name: "about",
+      component: () => import("@/views/AboutView.vue"),
+    },
     // {
     //   path: '/about',
     //   name: 'about',

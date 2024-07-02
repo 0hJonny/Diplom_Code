@@ -7,6 +7,7 @@ const props = defineProps<{
   totalItems: number;
   elementsPerPage: number;
   currentPage: number;
+  category?: string;
 }>();
 
 const pagesData = reactive({

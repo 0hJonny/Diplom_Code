@@ -79,6 +79,10 @@ watch(
   }
 );
 
+onMounted(() => {
+  document.title = article.value?.title || "Article";
+})
+
 // const observer = new MutationObserver((mutationsList) => {
 //   for (const mutation of mutationsList) {
 //     if (mutation.type === "attributes" && mutation.attributeName === "lang") {
@@ -135,7 +139,7 @@ watch(
                 class="tag-popup"
               >
                 <div class="tooltip rounded-lg p-2">
-                  {{ key }}
+                  {{ key.charAt(0).toUpperCase() + key.slice(1) }}
                 </div>
                 <ArticleTag :tag="tag" />
               </div>
@@ -145,15 +149,14 @@ watch(
           <div
             v-if="'article.sourceUrl'"
             class="tags-container-tag"
-            @click="openSourceLink(article.sourceLink)"
           >
             <div class="tags">
-              <div class="tag-popup">
+              <a :href="article.sourceLink" class="tag-popup">
                 <div class="tooltip rounded-lg p-2 cursor-pointer">
                   {{ article.sourceLink }}
                 </div>
                 <ArticleTag :tag="'Source'" />
-              </div>
+              </a>
             </div>
           </div>
         </div>

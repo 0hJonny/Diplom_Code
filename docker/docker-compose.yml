@@ -180,6 +180,40 @@ services:
   #     - .:/app 
   #   restart: always
 
+
+# dev container
+  scraper_server:
+    container_name: scraper_server
+    build:
+      context: ../Server/Scraper/Service
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5000"
+    volumes:
+      - ../Server/Scraper/Service:/app
+    restart: always
+    depends_on:
+      - golang-server
+    networks:
+      - app_network
+  worker:
+    container_name: worker
+    environment:
+      SCRAPER_API: http://scraper_server:5000
+    build:
+      context: ../Server/Scraper/Worker
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5000"
+    volumes:
+      - ../Server/Scraper/Worker:/app
+    restart: always
+    depends_on:
+      - golang-server
+    networks:
+      - app_network
+
+
 # Volumes
 volumes:
   ollama_data:

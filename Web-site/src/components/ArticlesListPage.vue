@@ -26,6 +26,10 @@ const props = defineProps({
       currentPage: NaN,
       elementsPerPage: 16
     })
+  },
+  category: {
+    type: String,
+    default: ""
   }
 });
 
@@ -39,7 +43,7 @@ async function loadArticles() {
   try {
     // Получаем данные от сервиса
     const { data: rawData } = await service.get(
-      `${urls.articles}?page=${props.pagesData.currentPage}&limit=${props.pagesData.elementsPerPage}&language_code=${languageLocales[document.documentElement.getAttribute("lang") || "en"]}`
+      `${urls.articles}?page=${props.pagesData.currentPage}&limit=${props.pagesData.elementsPerPage}&language_code=${languageLocales[document.documentElement.getAttribute("lang") || "en"]}&category=${props.category}`
     );
 
     if (rawData === null) {

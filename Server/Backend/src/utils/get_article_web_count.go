@@ -1,10 +1,17 @@
 package utils
 
-import "go-gin-postgresql-backend/src/models"
+import (
+	"go-gin-postgresql-backend/src/models"
+	"log"
+)
 
 func GetArticleWebCount(articleWebQuery *models.ArticleWebQuery) (*models.ArticleWebCount, error) {
 	var err error
 	var count models.ArticleWebCount
+
+	log.Println("🔎🔎🔎 ArticleWebQuery: " + articleWebQuery.Category)
+
+	args := []interface{}{}
 
 	query := `
 		SELECT 
@@ -18,13 +25,16 @@ func GetArticleWebCount(articleWebQuery *models.ArticleWebQuery) (*models.Articl
 
 	if articleWebQuery.Category != "" {
 		query += ` WHERE themes.theme_name = ? AND annotations.article_id IS NOT NULL`
+		args = append(args, articleWebQuery.Category)
+
 	} else {
 		query += ` WHERE annotations.article_id IS NOT NULL`
 	}
 
 	query += ` AND annotations.language_id = (SELECT language_id FROM languages WHERE language_code = ?);`
+	args = append(args, articleWebQuery.LanguageCode)
 
-	err = models.DatabaseArticles.Raw(query, articleWebQuery.LanguageCode).Count(&count.Count).Error
+	err = models.DatabaseArticles.Raw(query, args...).Count(&count.Count).Error
 	if err != nil {
 		return &models.ArticleWebCount{}, err
 	}

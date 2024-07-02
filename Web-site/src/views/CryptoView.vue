@@ -63,21 +63,20 @@ watch(
 
 async function get_articles_count() {
   const { data }: any = await service.get(
-    `${urls.articles_count}?language_code=${languageLocales[document.documentElement.getAttribute("lang") || "en"]}`
+    `${urls.articles_count}?language_code=${languageLocales[document.documentElement.getAttribute("lang") || "en"]}&category=crypto`
   );
   pagesData.totalItems = data["count"];
   // console.log("pagesData.totalItems: ", pagesData.totalItems);
 }
-
 onMounted(() => {
-  document.title = "IT news"
+  document.title = "Crypto"
 })
 </script>
 
 <template>
   <div class="w-full h-full">
     <Header />
-    <TitleHeader titleHeader="it news" />
+    <TitleHeader titleHeader="Crypto" />
   </div>
   <div class="container mx-auto p-4">
     <div class="articles-container">
@@ -86,7 +85,7 @@ onMounted(() => {
       </div>
 
       <div class="px-8">
-        <ArticlesList :lang="lang" :pagesData="pagesData" />
+        <ArticlesList :lang="lang" :pagesData="pagesData" category="crypto" />
       </div>
       <div class="border-t-2 border-slate-300 p-9">
         <PaginationVue
